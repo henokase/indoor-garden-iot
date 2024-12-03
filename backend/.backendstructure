@@ -1,0 +1,62 @@
+backend/
+├── src/
+│   ├── config/
+│   │   ├── database.js
+│   │   ├── socket.js
+│   │   ├── mqtt.js
+│   │   ├── env.js
+│   │   └── constants.js        # System constants and enums
+│   ├── models/
+│   │   ├── Sensor.js
+│   │   ├── Device.js
+│   │   ├── Setting.js
+│   │   ├── Alert.js
+│   │   ├── ResourceUsage.js    # Track energy and water consumption
+│   │   └── SystemLog.js        # System events logging
+│   ├── controllers/
+│   │   ├── sensorController.js
+│   │   ├── deviceController.js
+│   │   ├── settingController.js
+│   │   ├── alertController.js
+│   │   ├── resourceController.js
+│   │   └── systemController.js
+│   ├── services/
+│   │   ├── sensorService.js
+│   │   ├── deviceService.js
+│   │   ├── alertService.js
+│   │   ├── resourceService.js
+│   │   ├── automationService.js # Handle auto-mode logic
+│   │   └── systemService.js
+│   ├── routes/
+│   │   ├── api/
+│   │   │   ├── sensorRoutes.js
+│   │   │   ├── deviceRoutes.js
+│   │   │   ├── settingRoutes.js
+│   │   │   ├── alertRoutes.js
+│   │   │   ├── resourceRoutes.js
+│   │   │   └── systemRoutes.js
+│   │   └── index.js
+│   ├── middleware/
+│   │   ├── errorHandler.js
+│   │   ├── validateRequest.js
+│   │   ├── rateLimiter.js      # API rate limiting
+│   │   └── logger.js           # Request logging
+│   ├── utils/
+│   │   ├── asyncHandler.js
+│   │   ├── ApiError.js
+│   │   ├── validation.js       # Input validation helpers
+│   │   └── formatters.js       # Data formatting utilities
+│   └── scripts/
+│       ├── generateDemoData.js
+│       └── systemCheck.js      # System health check
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── fixtures/
+├── logs/
+├── .env
+├── .env.example
+├── .gitignore
+├── package.json
+├── README.md
+└── server.js
