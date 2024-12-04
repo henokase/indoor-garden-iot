@@ -53,7 +53,7 @@ const startServer = async () => {
     automationService.startAutomation()
 
     // Start server
-    httpServer.listen(env.PORT, () => {
+    httpServer.listen(env.PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${env.PORT}`)
     })
 
