@@ -4,7 +4,7 @@ const deviceSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    enum: ['fan', 'irrigation', 'lighting']
+    enum: ['fan', 'irrigation', 'lighting', 'fertilizer']
   },
   status: {
     type: Boolean,

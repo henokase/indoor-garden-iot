@@ -18,9 +18,9 @@ export const deviceController = {
   }),
 
   toggleDevice: asyncHandler(async (req, res) => {
-    const { id } = req.params
+    const { name } = req.params
     const { status } = req.body
-    const device = await deviceService.toggleDevice(id, status)
+    const device = await deviceService.toggleDevice(name, status)
     res.json(device)
   }),
 

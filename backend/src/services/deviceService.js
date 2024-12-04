@@ -17,8 +17,8 @@ export const deviceService = {
     return device
   },
 
-  async toggleDevice(id, status) {
-    const device = await Device.findById(id)
+  async toggleDevice(name, status) {
+    const device = await Device.findOne({ name })
     if (!device) {
       throw new ApiError(404, 'Device not found')
     }
@@ -86,7 +86,7 @@ export const deviceService = {
     }
 
     if (enabled && device.name === "irrigation" && device.status === true) {
-      throw new ApiError(400, 'Irrigation cannot be enabled when it is already running')
+      throw new ApiError(400, 'Irrigation is already running')
     }
 
     device.autoMode = enabled

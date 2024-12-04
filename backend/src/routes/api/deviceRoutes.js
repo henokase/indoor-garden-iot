@@ -7,7 +7,7 @@ const router = express.Router()
 
 router.get('/', deviceController.getAllDevices)
 router.get('/:id', deviceController.getDevice)
-router.post('/:id/toggle',
+router.post('/:name/toggle',
   validateRequest(schemas.device.toggle),
   deviceController.toggleDevice
 )

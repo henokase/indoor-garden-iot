@@ -14,7 +14,8 @@ const resourceUsageSchema = new mongoose.Schema({
     breakdown: {
       fan: { type: Number, default: 0 },
       irrigation: { type: Number, default: 0 },
-      lighting: { type: Number, default: 0 }
+      lighting: { type: Number, default: 0 },
+      fertilizer: { type: Number, default: 0 }
     }
   },
   water: {

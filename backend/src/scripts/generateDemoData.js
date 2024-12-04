@@ -30,6 +30,12 @@ async function generateDemoData() {
         status: true, 
         autoMode: true,
         powerRating: 50 // 50W LED panel
+      },
+      {
+        name: 'fertilizer',
+        status: false,
+        autoMode: true,
+        powerRating: 25, // 25W dispenser
       }
     ])
 

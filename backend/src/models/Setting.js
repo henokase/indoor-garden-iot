@@ -26,6 +26,29 @@ const settingSchema = new mongoose.Schema({
       min: 0,
       max: 23,
       default: 18
+    },
+    fertilizerSchedule: {
+      type: String,
+      enum: ['daily', 'weekly', 'monthly'],
+      default: 'weekly'
+    },
+    fertilizerTime: {
+      type: Number,
+      min: 0,
+      max: 23,
+      default: 8
+    },
+    fertilizerDayOfWeek: {
+      type: Number,
+      min: 0,
+      max: 6,
+      default: 0
+    },
+    fertilizerDayOfMonth: {
+      type: Number,
+      min: 1,
+      max: 31,
+      default: 1
     }
   },
   notifications: {
