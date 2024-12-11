@@ -6,19 +6,19 @@ import { ApiError } from '../utils/ApiError.js'
 export const resourceController = {
   getUsage: asyncHandler(async (req, res) => {
     const { type, startDate, endDate } = req.query
-    const usage = await resourceService.getUsage(type, { startDate, endDate })
+    const usage = await resourceService.getUsageStats(type, { startDate, endDate })
     res.json(usage)
   }),
 
   getDailyStats: asyncHandler(async (req, res) => {
     const { type, date } = req.query
-    const stats = await resourceService.getDailyStats(type, date)
+    const stats = await resourceService.getDailyUsage(type, date)
     res.json(stats)
   }),
 
   exportUsageReport: asyncHandler(async (req, res) => {
     const { type, startDate, endDate, format } = req.query
-    const data = await resourceService.getUsage(type, { startDate, endDate })
+    const data = await resourceService.getUsageStats(type, { startDate, endDate })
     
     if (format === 'csv') {
       const csv = exportUtils.generateCSV(data, [

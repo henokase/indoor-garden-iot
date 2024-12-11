@@ -1,9 +1,9 @@
 import mqtt from 'mqtt'
 import { env } from './env.js'
-import { getSocketService } from './socket.js'
-import { sensorService } from '../services/sensorService.js'
+import { emitSensorUpdate, emitDeviceUpdate } from './socket.js'
 import { deviceService } from '../services/deviceService.js'
 import { SystemLog } from '../models/SystemLog.js'
+import { SensorReading } from '../models/Sensor.js'
 
 class MQTTService {
   constructor() {
@@ -31,7 +31,7 @@ class MQTTService {
     })
 
     const url = `mqtts://${options.host}:${options.port}`
-    
+
     try {
       this.client = mqtt.connect(url, options)
 
@@ -84,11 +84,12 @@ class MQTTService {
 
     // Subscribe to topics
     const topics = [
-      `${env.MQTT_TOPIC_PREFIX}/sensors/#`,
-      `${env.MQTT_TOPIC_PREFIX}/devices/#`
+      'indoor-garden/sensors',
+      'indoor-garden/devices'   // Single topic for all device updates
     ]
 
     topics.forEach(topic => this.client.subscribe(topic))
+    console.log('Subscribed to topics:', topics)
 
     await SystemLog.create({
       level: 'info',
@@ -100,18 +101,57 @@ class MQTTService {
   async handleMessage(topic, message) {
     try {
       const payload = JSON.parse(message.toString())
-      const socketService = getSocketService()
+      console.log('MQTT Message Received:', { topic, payload })
 
-      if (topic.includes('/sensors/')) {
-        const sensorType = topic.split('/').pop()
-        await sensorService.addReading(sensorType, payload.value, payload.unit)
-        socketService.emitSensorUpdate(sensorType, payload)
+      if (topic === 'indoor-garden/sensors') {
+        // Save sensor readings to database
+        const sensorPromises = [
+          SensorReading.create({
+            type: 'temperature',
+            value: payload.temperature,
+            unit: 'C',
+            timestamp: new Date(payload.timestamp)
+          }),
+          SensorReading.create({
+            type: 'moisture',
+            value: payload.moisture,
+            unit: '%',
+            timestamp: new Date(payload.timestamp)
+          })
+        ]
+
+        await Promise.all(sensorPromises)
+
+        // Emit updates to connected clients
+        emitSensorUpdate('temperature', {
+          type: 'temperature',
+          value: payload.temperature || null,
+          timestamp: payload.timestamp || null
+        })
+        emitSensorUpdate('moisture', {
+          type: 'moisture',
+          value: payload.moisture || null,
+          timestamp: payload.timestamp || null
+        })
+
+        const sensorData = JSON.parse(message)
+        await historicalRecordService.createRecord(sensorData)
       }
 
-      if (topic.includes('/devices/')) {
-        const deviceId = topic.split('/').pop()
-        await deviceService.updateDeviceStatus(deviceId, payload)
-        socketService.emitDeviceUpdate(deviceId, payload)
+      if (topic === 'indoor-garden/devices') {
+        const { devices } = payload
+        for (const [deviceName, deviceState] of Object.entries(devices)) {
+          try {
+            const updatedDevice = await deviceService.updateDeviceStatus(deviceName, {
+              status: deviceState.status,
+              autoMode: deviceState.autoMode,
+              lastUpdated: deviceState.lastUpdated || new Date()
+            })
+            console.log('Device updated:', { deviceName, updatedDevice })
+          } catch (error) {
+            console.error(`Error updating device ${deviceName}:`, error)
+          }
+        }
       }
     } catch (error) {
       console.error('Error handling MQTT message:', error)
@@ -139,7 +179,7 @@ class MQTTService {
     console.log('MQTT connection closed')
     this.connected = false
     this.lastPingTime = null
-    
+
     // Attempt to reconnect after 5 seconds
     setTimeout(() => {
       if (!this.connected) {
@@ -149,7 +189,7 @@ class MQTTService {
     }, 5000)
   }
 
-  publish(topic, message) {
+  async publish(topic, message) {
     if (!this.connected) {
       throw new Error('MQTT client not connected')
     }

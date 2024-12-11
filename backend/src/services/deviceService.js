@@ -1,16 +1,16 @@
 import { Device } from '../models/Device.js'
 import { ApiError } from '../utils/ApiError.js'
-import { getSocketService } from '../config/socket.js'
-import { mqttService } from '../config/mqtt.js'
 import { resourceService } from './resourceService.js'
+import { emitDeviceUpdate } from '../config/socket.js'
+import { mqttService } from '../config/mqtt.js'
 
 export const deviceService = {
   async getAllDevices() {
     return await Device.find().lean()
   },
 
-  async getDevice(id) {
-    const device = await Device.findById(id).lean()
+  async getDevice(name) {
+    const device = await Device.findOne({ name }).lean()
     if (!device) {
       throw new ApiError(404, 'Device not found')
     }
@@ -23,14 +23,17 @@ export const deviceService = {
       throw new ApiError(404, 'Device not found')
     }
 
-    if (device.autoMode) {
-      throw new ApiError(400, 'Cannot toggle device in auto mode')
+    // Store the original state in case we need to rollback
+    const originalState = {
+      status: device.status,
+      lastUpdated: device.lastUpdated,
+      operationStartTime: device.operationStartTime
     }
 
     // If device is being turned off, calculate and track resource usage
     if (!status && device.status && device.operationStartTime) {
       const operationDuration = (new Date() - device.operationStartTime) / (1000 * 60 * 60) // hours
-      
+
       // Calculate energy usage
       const energyUsed = (device.powerRating * operationDuration) / 1000 // kWh
 
@@ -59,53 +62,87 @@ export const deviceService = {
     }
 
     // Update device status
-    device.status = status
-    device.lastUpdated = new Date()
-    
-    // Set operation start time only when turning on
-    if (status) {
-      device.operationStartTime = new Date()
+    const updatedDevice = await Device.findOneAndUpdate(
+      { name },
+      {
+        $set: {
+          status,
+          lastUpdated: new Date(),
+          ...(status ? { operationStartTime: new Date() } : {})
+        }
+      },
+      { new: true }
+    )
+
+    // Notify microcontroller via MQTT first
+    try {
+      await mqttService.publish('indoor-garden/commands', {
+        device: name,
+        status,
+        autoMode: updatedDevice.autoMode
+      })
+    } catch (error) {
+      console.error('Failed to notify microcontroller:', error)
+      
+      // Rollback the database change
+      const revertedDevice = await Device.findOneAndUpdate(
+        { name },
+        {
+          $set: originalState
+        },
+        { new: true }
+      )
+
+      // Notify clients about the revert via Socket.IO
+      await emitDeviceUpdate(name, revertedDevice)
+
+      throw new ApiError(500, 'Failed to communicate with device. Changes reverted.')
     }
 
-    await device.save()
+    // If MQTT succeeded, notify clients via Socket.IO
+    await emitDeviceUpdate(name, updatedDevice)
 
-    // Publish to MQTT
-    mqttService.publish(`devices/${id}/control`, { status })
+    console.log('Device updated:', updatedDevice)
 
-    // Notify clients
-    const socketService = getSocketService()
-    socketService.emitDeviceUpdate(id, device)
-
-    return device
+    return updatedDevice
   },
 
-  async setAutoMode(id, enabled) {
-    const device = await Device.findById(id)
+  async toggleAutoMode(name, enabled) {
+    const device = await Device.findOne({ name })
     if (!device) {
       throw new ApiError(404, 'Device not found')
     }
 
     if (enabled && device.name === "irrigation" && device.status === true) {
-      throw new ApiError(400, 'Irrigation is already running')
+      throw new ApiError(400, 'Turn off irrigation first')
     }
 
     device.autoMode = enabled
-    device.lastUpdated = new Date()
-    await device.save()
+    const updatedDevice = await device.save()
 
     // Notify clients
-    const socketService = getSocketService()
-    socketService.emitDeviceUpdate(id, device)
+    await emitDeviceUpdate(name, updatedDevice)
 
-    return device
+    return updatedDevice
   },
 
-  async updateDeviceStatus(id, status) {
-    const device = await Device.findByIdAndUpdate(
-      id,
+  async updateDeviceStatus(deviceName, status) {
+    const checkDevice = await Device.findOne({ name: deviceName })
+    if (!checkDevice) {
+      throw new ApiError(404, 'Device not found')
+    }
+
+    if (!checkDevice.autoMode) {
+      throw new ApiError(400, 'Device is not in auto mode')
+    }
+
+    // Find device by name instead of _id
+    const device = await Device.findOneAndUpdate(
+      { name: deviceName }, // Query by name field
       {
         $set: {
           status: status.status,
+          autoMode: status.autoMode,
           lastUpdated: new Date()
         }
       },
@@ -116,9 +153,13 @@ export const deviceService = {
       throw new ApiError(404, 'Device not found')
     }
 
-    // Notify clients
-    const socketService = getSocketService()
-    socketService.emitDeviceUpdate(id, device)
+    // Emit device update via Socket.IO
+    await emitDeviceUpdate(deviceName, {
+      name: deviceName,
+      status: status.status,
+      autoMode: status.autoMode,
+      lastUpdated: new Date()
+    })
 
     return device
   }

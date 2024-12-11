@@ -1,32 +1,28 @@
 import mongoose from 'mongoose'
 
 const systemLogSchema = new mongoose.Schema({
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
   level: {
     type: String,
-    required: true,
-    enum: ['info', 'warning', 'error']
+    enum: ['info', 'warning', 'error'],
+    required: true
   },
   source: {
     type: String,
-    required: true,
-    enum: ['system', 'device', 'sensor', 'automation', 'mqtt', 'health_check']
+    enum: ['system', 'mqtt', 'socket.io', 'automation', 'device', 'sensor'],
+    required: true
   },
   message: {
     type: String,
     required: true
   },
-  details: mongoose.Schema.Types.Mixed
+  details: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  }
 })
 
-// Index for efficient querying
-systemLogSchema.index({ timestamp: -1 })
-systemLogSchema.index({ level: 1, timestamp: -1 })
-systemLogSchema.index({ source: 1, timestamp: -1 })
-
-const SystemLog = mongoose.model('SystemLog', systemLogSchema)
-
-export { SystemLog } 
+export const SystemLog = mongoose.model('SystemLog', systemLogSchema) 

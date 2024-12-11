@@ -3,20 +3,29 @@ import { Device } from '../models/Device.js'
 import { ApiError } from '../utils/ApiError.js'
 
 export const resourceService = {
-  async trackUsage(deviceId, type, value, unit) {
-    const device = await Device.findById(deviceId)
-    if (!device) {
-      throw new ApiError(404, 'Device not found')
+  async trackUsage(usageData) {
+    try {
+      // Create a new ResourceUsage document
+      const usage = new ResourceUsage({
+        date: usageData.date,
+        energy: {
+          total: usageData.energy.total,
+          breakdown: usageData.energy.breakdown
+        },
+        water: {
+          total: usageData.water.total,
+          breakdown: usageData.water.breakdown
+        }
+      })
+
+      // Save the usage data
+      await usage.save()
+      
+      return usage
+    } catch (error) {
+      console.error('Error tracking resource usage:', error)
+      throw error
     }
-
-    const usage = await ResourceUsage.create({
-      deviceId,
-      type,
-      value,
-      unit
-    })
-
-    return usage
   },
 
   async getUsageStats(type, startDate, endDate) {

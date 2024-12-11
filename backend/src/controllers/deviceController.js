@@ -1,33 +1,38 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { deviceService } from '../services/deviceService.js'
-import { ApiError } from '../utils/ApiError.js'
 
 export const deviceController = {
-  getAllDevices: asyncHandler(async (req, res) => {
-    const devices = await deviceService.getAllDevices()
-    res.json(devices)
-  }),
-
-  getDevice: asyncHandler(async (req, res) => {
-    const { id } = req.params
-    const device = await deviceService.getDevice(id)
-    if (!device) {
-      throw new ApiError(404, 'Device not found')
+  async getAllDevices(req, res) {
+    try {
+      const devices = await deviceService.getAllDevices()
+      res.json(devices)
+    } catch (error) {
+      console.error('Get devices error:', error)
+      res.status(500).json({ message: 'Failed to fetch devices' })
     }
-    res.json(device)
-  }),
+  },
 
   toggleDevice: asyncHandler(async (req, res) => {
-    const { name } = req.params
-    const { status } = req.body
-    const device = await deviceService.toggleDevice(name, status)
-    res.json(device)
+    try {
+      const { name } = req.params
+      const { status } = req.body
+      const device = await deviceService.toggleDevice(name, status)
+      res.json(device)
+    } catch (error) {
+      console.error('Toggle device error:', error)
+      res.status(error.status || 500).json({ message: error.message })
+    }
   }),
 
-  setAutoMode: asyncHandler(async (req, res) => {
-    const { id } = req.params
-    const { enabled } = req.body
-    const device = await deviceService.setAutoMode(id, enabled)
-    res.json(device)
-  })
-} 
+  async toggleAutoMode(req, res) {
+    try {
+      const { name } = req.params
+      const { enabled } = req.body
+      const updatedDevice = await deviceService.toggleAutoMode(name, enabled)
+      res.json(updatedDevice)
+    } catch (error) {
+      console.error('Toggle auto mode error:', error)
+      res.status(error.status || 500).json({ message: error.message })
+    }
+  }
+}

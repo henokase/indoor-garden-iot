@@ -1,93 +1,76 @@
-import { motion } from 'framer-motion'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Power } from 'lucide-react'
-import DeviceToggle from '../components/control/DeviceToggle'
-import AutoModeToggle from '../components/control/AutoModeToggle'
-import { fetchDeviceStates, fetchAutoMode, toggleDevice, toggleAutoMode } from '../lib/api'
+import { useDeviceStatus } from "../hooks/useDeviceStatus";
+import { Fan, Droplets, FlaskConical, Lightbulb } from "lucide-react";
+import { DeviceCard } from "../components/control/DeviceCard";
+import { useState, useMemo } from "react";
+import { toast } from "react-hot-toast";
 
-function ControlPanel() {
-  const queryClient = useQueryClient()
-  
-  const { data: deviceStates, isLoading: devicesLoading } = useQuery({
-    queryKey: ['device-states'],
-    queryFn: fetchDeviceStates,
-    refetchInterval: 5000
-  })
+export default function ControlPanel() {
+    const { deviceStatusData = [], isLoading, error } = useDeviceStatus();
+    const [deviceList, setDeviceList] = useState([
+        {
+            name: "irrigation",
+            label: "Irrigation",
+            icon: <Droplets className="w-6 h-6" />,
+            iconColor: "text-blue-500",
+        },
+        {
+            name: "fan",
+            label: "Fan",
+            icon: <Fan className="w-6 h-6" />,
+            iconColor: "text-gray-500",
+        },
+        {
+            name: "lighting",
+            label: "Lighting",
+            icon: <Lightbulb className="w-6 h-6" />,
+            iconColor: "text-yellow-500",
+        },
+        {
+            name: "fertilizer",
+            label: "Fertilizer",
+            icon: <FlaskConical className="w-6 h-6" />,
+            iconColor: "text-green-500",
+        },
+    ]);
 
-  const { data: autoMode, isLoading: autoModeLoading } = useQuery({
-    queryKey: ['auto-mode'],
-    queryFn: fetchAutoMode,
-    refetchInterval: 5000
-  })
+    // Merge device status with device list
+    const mergedDevices = useMemo(() => {
+        if (!Array.isArray(deviceStatusData)) return deviceList;
+        return deviceList.map((device) => {
+            const deviceStatus = deviceStatusData.find(
+                (d) => d?.name === device.name
+            );
+            return {
+                ...device,
+                status: deviceStatus?.status ?? false,
+                autoMode: deviceStatus?.autoMode ?? false,
+                lastUpdated: deviceStatus?.lastUpdated,
+            };
+        });
+    }, [deviceStatusData, deviceList]);
 
-  const deviceMutation = useMutation({
-    mutationFn: toggleDevice,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['device-states'] })
+    if (isLoading) {
+        return (
+            <div className="p-6 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            </div>
+        );
     }
-  })
 
-  const autoModeMutation = useMutation({
-    mutationFn: toggleAutoMode,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auto-mode'] })
+    if (error) {
+        toast.error(error.message || "Failed to load devices");
+        return (
+            <div className="p-6 text-center text-red-500">
+                Failed to load devices. Please try again later.
+            </div>
+        );
     }
-  })
 
-  return (
-    <div className="space-y-6">
-      <motion.h1 
-        className="text-2xl font-bold text-gray-900 dark:text-white max-md:hidden"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        Control Panel
-      </motion.h1>
-
-      <motion.div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        <div className="flex flex-col space-y-4">
-          <AutoModeToggle
-            isEnabled={autoMode?.enabled}
-            isLoading={autoModeLoading}
-            onToggle={() => autoModeMutation.mutate()}
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-            <DeviceToggle
-              title="Fan"
-              icon={Power}
-              isEnabled={deviceStates?.fan}
-              isLoading={devicesLoading}
-              isDisabled={autoMode?.enabled}
-              onToggle={() => deviceMutation.mutate('fan')}
-            />
-            <DeviceToggle
-              title="Irrigation"
-              icon={Power}
-              isEnabled={deviceStates?.irrigation}
-              isLoading={devicesLoading}
-              isDisabled={autoMode?.enabled}
-              onToggle={() => deviceMutation.mutate('irrigation')}
-            />
-            <DeviceToggle
-              title="Lighting"
-              icon={Power}
-              isEnabled={deviceStates?.lighting}
-              isLoading={devicesLoading}
-              isDisabled={autoMode?.enabled}
-              onToggle={() => deviceMutation.mutate('lighting')}
-            />
-          </div>
+    return (
+        <div className="p-6 space-y-6">
+            {mergedDevices.map((device) => (
+                <DeviceCard key={device.name} device={device} />
+            ))}
         </div>
-      </motion.div>
-    </div>
-  )
+    );
 }
-
-export default ControlPanel 

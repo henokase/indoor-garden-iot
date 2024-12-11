@@ -1,75 +1,144 @@
 import { deviceService } from './deviceService.js'
 import { sensorService } from './sensorService.js'
-import { settingService } from './settingService.js'
+import { alertService } from './alertService.js'
+import { emitSystemStatus } from '../config/socket.js'
 import { Device } from '../models/Device.js'
+import { settingsService } from './settingsService.js'
 
 export class AutomationService {
   constructor() {
+    this.interval = null
+    this.isRunning = false
     this.fertilizerTimers = new Map()
   }
 
-  async processReadings() {
+  async startAutomation() {
+    if (this.isRunning) return
+
+    this.isRunning = true
+    await emitSystemStatus({
+      automation: true,
+      timestamp: new Date()
+    })
+
+    this.interval = setInterval(async () => {
+      try {
+        await this.checkConditionsAndAct()
+      } catch (error) {
+        console.error('Automation error:', error)
+        await alertService.createAlert({
+          type: 'automation_error',
+          message: 'Automation check failed',
+          severity: 'error',
+          details: error.message
+        })
+      }
+    }, 60000) // Check every minute
+  }
+
+  async stopAutomation() {
+    if (this.interval) {
+      clearInterval(this.interval)
+      this.interval = null
+      this.isRunning = false
+
+      await emitSystemStatus({
+        automation: false,
+        timestamp: new Date()
+      })
+    }
+  }
+
+  async checkConditionsAndAct() {
+    const readings = await sensorService.getCurrentReadings()
+    const devices = await deviceService.getAllDevices()
+
+    // Emit current system status
+    await emitSystemStatus({
+      automation: true,
+      readings,
+      devices: devices.map(d => ({
+        name: d.name,
+        status: d.status,
+        autoMode: d.autoMode
+      })),
+      timestamp: new Date()
+    })
+
+    const fan = deviceService.getDevice('fan')
+    const irrigation = deviceService.getDevice('irrigation')
+    const lighting = deviceService.getDevice('lighting')
+    const fertilizer = deviceService.getDevice('fertilizer')
+
+    await this.processReadings(fan, irrigation, lighting, fertilizer)
+  }
+
+  async processReadings(fan, irrigation, lighting, fertilizer) {
     try {
       const [settings, temperature, moisture] = await Promise.all([
-        settingService.getSettings(),
+        settingsService.getSettings(),
         sensorService.getCurrentReading('temperature'),
         sensorService.getCurrentReading('moisture')
       ])
 
       // Fan control logic
-      if (temperature.value > settings.temperatureThreshold) {
-        await deviceService.toggleDevice('fan', true)
-      } else if (temperature.value < settings.temperatureThreshold - 2) {
-        await deviceService.toggleDevice('fan', false)
+      if (fan && fan.autoMode) {
+        if (temperature.value > settings.maxTemperatureThreshold) {
+          await deviceService.toggleDevice('fan', true)
+        } else if (temperature.value < settings.minTemperatureThreshold) {
+          await deviceService.toggleDevice('fan', false)
+        }
       }
 
       // Irrigation control logic
-      if (moisture.value < settings.moistureThreshold) {
-        await deviceService.toggleDevice('irrigation', true)
-      } else if (moisture.value > settings.moistureThreshold + 5) {
-        await deviceService.toggleDevice('irrigation', false)
+      if (irrigation && irrigation.autoMode) {
+        if (moisture.value < settings.minMoistureThreshold) {
+          await deviceService.toggleDevice('irrigation', true)
+        } else if (moisture.value > settings.maxMoistureThreshold) {
+          await deviceService.toggleDevice('irrigation', false)
+        }
       }
 
       // Lighting control based on schedule
-      const hour = new Date().getHours()
-      const shouldLightBeOn = hour >= settings.lightingStartHour && 
-                             hour < settings.lightingEndHour
+      if (lighting && lighting.autoMode) {
+        const hour = new Date().getHours()
+        const shouldLightBeOn = hour >= settings.lightingStartHour &&
+          hour < settings.lightingEndHour
 
-      await deviceService.toggleDevice('lighting', shouldLightBeOn)
+        await deviceService.toggleDevice('lighting', shouldLightBeOn)
+      }
 
       // Fertilizer control logic
-      const currentDate = new Date()
-      const currentHour = currentDate.getHours()
-      const currentMinute = currentDate.getMinutes()
-      const dayOfWeek = currentDate.getDay() // 0-6 (Sunday-Saturday)
-      const dayOfMonth = currentDate.getDate() // 1-31
-
-      const shouldStartFertilizer = (
-        // Daily schedule
-        (settings.preferences.fertilizerSchedule === 'daily' && 
-         currentHour === settings.preferences.fertilizerTime && 
-         currentMinute < 10) ||
-        
-        // Weekly schedule
-        (settings.preferences.fertilizerSchedule === 'weekly' && 
-         dayOfWeek === settings.preferences.fertilizerDayOfWeek && 
-         currentHour === settings.preferences.fertilizerTime && 
-         currentMinute < 10) ||
-        
-        // Monthly schedule
-        (settings.preferences.fertilizerSchedule === 'monthly' && 
-         dayOfMonth === settings.preferences.fertilizerDayOfMonth &&
-         currentHour === settings.preferences.fertilizerTime && 
-         currentMinute < 10)
-      )
-
-      const fertilizer = await Device.findOne({ name: 'fertilizer' })
-      
       if (fertilizer && fertilizer.autoMode) {
+        const currentDate = new Date()
+        const currentHour = currentDate.getHours()
+        const currentMinute = currentDate.getMinutes()
+        const dayOfWeek = currentDate.getDay() // 0-6 (Sunday-Saturday)
+        const dayOfMonth = currentDate.getDate() // 1-31
+
+        const shouldStartFertilizer = (
+          // Daily schedule
+          (settings.preferences.fertilizerSchedule === 'daily' &&
+            currentHour === settings.preferences.fertilizerTime &&
+            currentMinute < 10) ||
+
+          // Weekly schedule
+          (settings.preferences.fertilizerSchedule === 'weekly' &&
+            dayOfWeek === settings.preferences.fertilizerDayOfWeek &&
+            currentHour === settings.preferences.fertilizerTime &&
+            currentMinute < 10) ||
+
+          // Monthly schedule
+          (settings.preferences.fertilizerSchedule === 'monthly' &&
+            dayOfMonth === settings.preferences.fertilizerDayOfMonth &&
+            currentHour === settings.preferences.fertilizerTime &&
+            currentMinute < 10)
+        )
+
         if (shouldStartFertilizer && !fertilizer.status) {
           // Turn on fertilizer
           await deviceService.toggleDevice('fertilizer', true)
-          
+
           // Set timer to turn off after 10 minutes
           this.setFertilizerTimer(fertilizer._id)
         } else if (!shouldStartFertilizer && fertilizer.status) {
@@ -102,12 +171,4 @@ export class AutomationService {
     this.fertilizerTimers.set(deviceId, timer)
   }
 
-  startAutomation() {
-    // Run automation check every minute
-    setInterval(() => this.processReadings(), 60000)
-    console.log('Automation service started')
-  }
 }
-
-// Export singleton instance for services that need it
-export const automationService = new AutomationService() 

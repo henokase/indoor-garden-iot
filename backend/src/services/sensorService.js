@@ -1,17 +1,38 @@
 import { SensorReading } from '../models/Sensor.js'
-import { ApiError } from '../utils/ApiError.js'
-import { getSocketService } from '../config/socket.js'
+import { emitSensorUpdate } from '../config/socket.js'
+// import { HistoricalRecord } from '../models/HistoricalRecord.js'
 
 export const sensorService = {
+  async getCurrentReadings() {
+    const types = ['temperature', 'moisture']
+    const readings = {}
+
+    await Promise.all(
+      types.map(async (type) => {
+        try {
+          const reading = await SensorReading.findOne({ type })
+            .sort({ timestamp: -1 })
+            .lean()
+
+          readings[type] = reading ? reading.value : null
+        } catch (error) {
+          console.error(`Error fetching ${type} reading:`, error)
+          readings[type] = null
+        }
+      })
+    )
+
+    return {
+      temperature: readings.temperature,
+      moisture: readings.moisture,
+      timestamp: new Date()
+    }
+  },
+
   async getCurrentReading(type) {
     const reading = await SensorReading.findOne({ type })
       .sort({ timestamp: -1 })
       .lean()
-
-    if (!reading) {
-      throw new ApiError(404, `No readings found for sensor type: ${type}`)
-    }
-
     return reading
   },
 
@@ -20,6 +41,9 @@ export const sensorService = {
     let startDate = new Date()
 
     switch (timeRange) {
+      case '1h':
+        startDate.setHours(startDate.getHours() - 1)
+        break
       case '24h':
         startDate.setHours(startDate.getHours() - 24)
         break
@@ -56,8 +80,11 @@ export const sensorService = {
     })
 
     // Notify clients about new reading
-    const socketService = getSocketService()
-    socketService.emitSensorUpdate(type, reading)
+    emitSensorUpdate(type, {
+      type,
+      value: reading.value,
+      timestamp: reading.timestamp
+    })
 
     return reading
   },
@@ -76,6 +103,38 @@ export const sensorService = {
       avg: values.reduce((a, b) => a + b, 0) / values.length,
       count: readings.length,
       unit: readings[0]?.unit
+    }
+  },
+
+  async getSensorReadingsByDateRange(type, startDate, endDate) {
+    // If no dates provided, default to last 7 days
+    const end = endDate ? new Date(endDate) : new Date()
+    const start = startDate 
+      ? new Date(startDate)
+      : new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+    const readings = await SensorReading.find({
+      type,
+      timestamp: {
+        $gte: start,
+        $lte: end
+      }
+    })
+      .sort({ timestamp: 1 })
+      .lean()
+
+    if (readings.length === 0) {
+      return {
+        data: [],
+        message: 'No records found for the selected date range'
+      }
+    }
+
+    return {
+      data: readings.map(reading => ({
+        timestamp: reading.timestamp,
+        value: reading.value
+      }))
     }
   }
 }

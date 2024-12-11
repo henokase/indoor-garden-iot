@@ -9,26 +9,29 @@ const resourceUsageSchema = new mongoose.Schema({
   energy: {
     total: {
       type: Number,
-      required: true
+      required: true,
+      default: 0
     },
     breakdown: {
-      fan: { type: Number, default: 0 },
-      irrigation: { type: Number, default: 0 },
-      lighting: { type: Number, default: 0 },
-      fertilizer: { type: Number, default: 0 }
+      type: Map,
+      of: Number,
+      default: new Map()
     }
   },
   water: {
     total: {
       type: Number,
-      required: true
+      required: true,
+      default: 0
     },
     breakdown: {
-      irrigation: { type: Number, default: 0 }
+      type: Map,
+      of: Number,
+      default: new Map()
     }
   }
 })
 
-const ResourceUsage = mongoose.model('ResourceUsage', resourceUsageSchema)
+resourceUsageSchema.index({ date: -1 })
 
-export { ResourceUsage } 
+export const ResourceUsage = mongoose.model('ResourceUsage', resourceUsageSchema) 

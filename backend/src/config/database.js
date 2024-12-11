@@ -4,48 +4,36 @@ import { SystemLog } from '../models/SystemLog.js';
 
 export const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(env.MONGODB_URI); // No options needed
+    await mongoose.connect(env.MONGODB_URI);
+    console.log('MongoDB Connected');
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-
-    // Log successful connection
-    await SystemLog.create({
-      level: 'info',
-      source: 'system',
-      message: 'Database connection established',
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose connected to MongoDB');
     });
 
-    // Handle connection errors after initial connect
-    mongoose.connection.on('error', async (error) => {
-      console.error('MongoDB connection error:', error);
-      await SystemLog.create({
+    mongoose.connection.on('error', (error) => {
+      console.error('MongoDB error:', error);
+      SystemLog.create({
         level: 'error',
-        source: 'system',
-        message: 'Database connection error',
-        details: { error: error.message },
-      });
+        source: 'database',
+        message: 'MongoDB connection error',
+        details: { error: error.message }
+      }).catch(console.error);
     });
 
-    // Handle disconnection
-    mongoose.connection.on('disconnected', async () => {
+    mongoose.connection.on('disconnected', () => {
       console.log('MongoDB disconnected');
-      await SystemLog.create({
+      SystemLog.create({
         level: 'warning',
-        source: 'system',
-        message: 'Database disconnected',
-      });
+        source: 'database',
+        message: 'MongoDB disconnected'
+      }).catch(console.error);
     });
+
+    mongoose.set('debug', true);
+
   } catch (error) {
     console.error('Database connection failed:', error);
-
-    // Log connection failure
-    await SystemLog.create({
-      level: 'critical',
-      source: 'system',
-      message: 'Database connection failed',
-      details: { error: error.message },
-    });
-
     process.exit(1);
   }
 };

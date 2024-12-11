@@ -1,0 +1,40 @@
+1.  Open Arduino IDE and install these libraries:
+   - Go to Tools > Manage Libraries... (or press Ctrl + Shift + I)
+   - Search for and install these libraries:
+     - PubSubClient
+     - ArduinoJson
+     - DHT sensor library by Adafruit
+     - Adafruit Unified Sensor
+     - NTPClient
+
+2. Configure your board:
+   - Go to Tools > Board and select "NodeMCU 1.0 (ESP-12E Module)"
+   - Set the upload speed to 115200 (Tools > Upload Speed)
+   - Select the correct COM port (Tools > Port)
+
+3. Copy the IndoorGardenController.ino code into a new sketch:
+   - Go to File > New Sketch
+   - Copy and paste the code
+   - Save it with a name (e.g., "IndoorGardenController")
+
+4. Before uploading, make sure to update these configuration values:
+   - // WiFi Configuration
+     const char* WIFI_SSID = "YOUR_WIFI_SSID";        // Your WiFi name
+     const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"; // Your WiFi password
+
+   - // MQTT Configuration
+     const char* MQTT_SERVER = "d55d1972759041bf83d36d8d821741ab.s1.eu.hivemq.cloud";
+     const int MQTT_PORT = 8883;
+     const char* MQTT_USER = "indoor_garden_system";
+     const char* MQTT_PASSWORD = "Hero4433>test43";
+
+5. Verify your pin connections match the defined pins:
+   - // Pin Definitions
+     #define DHT_PIN D4              // DHT22 data pin
+     #define MOISTURE_SENSOR_PIN A0  // Soil moisture sensor
+     #define FAN_PIN D1             // Fan relay
+     #define PUMP_PIN D2            // Pump relay
+     #define LIGHT_PIN D3           // Light relay
+     #define FERTILIZER_PIN D5      // Fertilizer pump relay
+
+6. Then you can compile and upload the code to your ESP8266 using the Arduino IDE. The functionality will be exactly the same as with PlatformIO.

@@ -1,31 +1,28 @@
 import express from 'express'
 import cors from 'cors'
 import { createServer } from 'http'
-import morgan from 'morgan'
 import { env } from './src/config/env.js'
 import { connectDB } from './src/config/database.js'
 import { initializeSocket } from './src/config/socket.js'
-import { errorHandler } from './src/middleware/errorHandler.js'
 import { mqttService } from './src/config/mqtt.js'
 import { AutomationService } from './src/services/automationService.js'
-import routes from './src/routes/index.js'
+
+// Import routes
+import alertRoute from './src/routes/alertRoutes.js'
+import deviceRoute from './src/routes/deviceRoutes.js'
+import resourceRoute from './src/routes/resourceRoutes.js'
+import sensorRoute from './src/routes/sensorRoutes.js'
+import settingsRoute from './src/routes/settingsRoutes.js'
+import systemRoute from './src/routes/systemRoutes.js'
 
 const app = express()
 
 // Middleware
 app.use(cors({
-  origin: env.FRONTEND_URL,
+  origin: env.FRONTEND_URL || "http://localhost:3000",
   credentials: true
 }))
 app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(morgan('dev'))
-
-// Routes
-app.use('/api', routes)
-
-// Error handling
-app.use(errorHandler)
 
 const startServer = async () => {
   try {
@@ -46,7 +43,15 @@ const startServer = async () => {
     const httpServer = createServer(app)
 
     // Initialize WebSocket
-    const socketService = initializeSocket(httpServer)
+    initializeSocket(httpServer)
+
+    // Routes
+    app.use('/api/alerts', alertRoute)
+    app.use('/api/devices', deviceRoute)
+    app.use('/api/resources', resourceRoute)
+    app.use('/api/sensors', sensorRoute)
+    app.use('/api/settings', settingsRoute)
+    app.use('/api/system', systemRoute)
 
     // Start automation service
     const automationService = new AutomationService()
@@ -60,11 +65,7 @@ const startServer = async () => {
     // Graceful shutdown handling
     const shutdown = async () => {
       console.log('Shutting down gracefully...')
-      
-      // Stop services
       await mqttService.disconnect()
-      
-      // Close server
       httpServer.close(() => {
         console.log('Server closed')
         process.exit(0)
@@ -80,11 +81,5 @@ const startServer = async () => {
     process.exit(1)
   }
 }
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Promise Rejection:', err)
-  process.exit(1)
-})
 
 startServer() 

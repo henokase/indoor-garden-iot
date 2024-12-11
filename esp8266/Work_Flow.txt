@@ -1,0 +1,86 @@
+Communication Flows
+1. Arduino → MQTT Server → Backend
+- Sensor Data (publishSensorData):
+   Topic: "indoor-garden/sensors"
+   Payload: {
+     "temperature": float,
+     "humidity": float,
+     "moisture": int,
+     "timestamp": long
+   }
+- Device States (publishDeviceStates):
+   Topic: "indoor-garden/devices"
+   Payload: {
+     "devices": {
+       "fan": { "status": bool, "autoMode": bool },
+       "irrigation": { "status": bool, "autoMode": bool },
+       "lighting": { "status": bool, "autoMode": bool },
+       "fertilizer": { "status": bool, "autoMode": bool }
+     }
+   }
+2. Backend → MQTT Server → Arduino
+- Device Control (Expected in mqttCallback):
+   Topic: "indoor-garden/commands"
+   Payload: {
+     "device": "fan|irrigation|lighting|fertilizer",
+     "status": bool,
+     "autoMode": bool
+   }
+
+
+Arduino Functionality Flow
+1. Setup Phase (setup()):
+   - Initialize hardware pins
+   - Connect to WiFi
+   - Setup MQTT connection
+   - Initialize NTP client
+   - Set default device modes
+2. Main Loop (loop()):
+   graph TD
+     A[Check Connection] --> B{Is Connected?}
+     B -->|Yes| C[Handle Online Mode]
+     B -->|No| D[Handle Offline Mode]
+     C --> E[Update Sensors]
+     D --> E
+     E --> F[Publish Updates]
+3. Online Mode Operations:
+   - Maintain MQTT connection
+   - Send sensor data every 30 seconds
+   - Receive and execute device commands
+   - Publish device state changes
+   - Keep time synchronized via NTP
+4. Offline Mode Operations (handleOfflineAutomation):
+Autonomous temperature control (15-28°C)
+   - Autonomous moisture control (40-60%)
+   - Time-based lighting control (6AM-6PM)
+   - Fertilizer duration management
+   - All devices forced to auto mode
+5. Device Control Logic:
+   - Each device (fan, pump, light, fertilizer) has:
+     - Status (on/off)
+     - Auto mode (manual/automatic)
+     - Physical pin control
+     - State synchronization with server
+6. Failsafe Features:
+   - WiFi reconnection attempts (5 retries)
+   - MQTT reconnection handling
+   - Offline mode fallback
+   - Moving average for moisture readings
+   - Error checking for sensor readings
+
+Key Timings
+- Sensor updates: 30 seconds
+- MQTT reconnect attempts: 5 seconds
+- WiFi retry delay: 5 seconds
+- Connection check: 10 seconds
+- Fertilizer duration: 10 minutes
+
+Error Handling
+- Sensor reading validation
+- Connection loss detection
+- Mode switching (online/offline)
+- Data transmission retries
+- State synchronization on reconnection
+
+This system provides redundancy through offline automation while maintaining synchronization with the backend when online, 
+ensuring continuous operation of the indoor garden system regardless of connectivity status.
