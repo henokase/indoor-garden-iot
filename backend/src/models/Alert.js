@@ -14,6 +14,7 @@ const alertSchema = new mongoose.Schema({
       'moisture_high',
       'moisture_low',
       'device_error',
+      'automation_error',
       'system_error'
     ]
   },

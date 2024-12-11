@@ -133,9 +133,6 @@ class MQTTService {
           value: payload.moisture || null,
           timestamp: payload.timestamp || null
         })
-
-        const sensorData = JSON.parse(message)
-        await historicalRecordService.createRecord(sensorData)
       }
 
       if (topic === 'indoor-garden/devices') {
