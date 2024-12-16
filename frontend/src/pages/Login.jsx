@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import api from "../lib/axios";
-import { Leaf } from "lucide-react";
+
+import logo from "../assets/logo.png";
 
 export default function Login() {
     const [password, setPassword] = useState("");
@@ -27,17 +28,17 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-900 dark:to-gray-800 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-green-200 dark:from-gray-900 dark:to-gray-800 p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
+                className="w-full max-w-md bg-green-100 dark:bg-gray-800 rounded-2xl shadow-xl p-8"
             >
-                <div className="flex justify-center mb-8">
-                    <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                        <Leaf className="h-6 w-6 text-white" />
+                <div className="flex justify-center items-center mb-8">
+                    <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-full">
+                        <img src={logo} className="h-14" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white ml-3">
+                    <h1 className="text-2xl ml-3 font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text">
                         GardenSense
                     </h1>
                 </div>

@@ -92,7 +92,7 @@ export default function Dashboard() {
 
             {/* Sensor Chart */}
             <motion.div
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6"
+                className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}

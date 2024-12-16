@@ -39,15 +39,20 @@ export function SensorChart() {
     const diffHours = (maxTime - minTime) / (1000 * 60 * 60)
     
     // Determine tick count based on time range
-    let tickCount = 6 // default for < 24h
+    let tickCount = Math.min(6, formattedData.length) // default for < 24h
     if (diffHours > 24) {
-      tickCount = 8
+      tickCount = Math.min(8, formattedData.length)
     }
     
     // Generate evenly spaced ticks
     const ticks = []
+    const step = (maxTime - minTime) / (tickCount - 1)
     for (let i = 0; i < tickCount; i++) {
-      ticks.push(minTime + ((maxTime - minTime) * i) / (tickCount - 1))
+      const tickValue = minTime + (step * i)
+      // Only add the tick if it's not already in the array
+      if (!ticks.includes(tickValue)) {
+        ticks.push(tickValue)
+      }
     }
     
     return ticks

@@ -1,17 +1,42 @@
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
+import api from '../lib/axios'
 
 export function useResourceUsage(dateRange) {
   return useQuery({
-    queryKey: ['resourceUsage', dateRange],
+    queryKey: ['resourceUsage', dateRange?.start, dateRange?.end],
     queryFn: async () => {
-      const { data } = await axios.get('/api/resources/usage', {
+      if (!dateRange?.start || !dateRange?.end) {
+        return []
+      }
+
+      const { data } = await api.get('/resources/usage', {
         params: {
-          start: dateRange.start.toISOString(),
-          end: dateRange.end.toISOString()
+          startDate: dateRange.start.toISOString(),
+          endDate: dateRange.end.toISOString()
         }
       })
       return data
-    }
+    },
+    enabled: !!dateRange?.start && !!dateRange?.end
   })
-} 
+}
+
+export function useResourceStats(dateRange) {
+  return useQuery({
+    queryKey: ['resourceStats', dateRange?.start, dateRange?.end],
+    queryFn: async () => {
+      if (!dateRange?.start || !dateRange?.end) {
+        return null
+      }
+
+      const { data } = await api.get('/resources/stats', {
+        params: {
+          startDate: dateRange.start.toISOString(),
+          endDate: dateRange.end.toISOString()
+        }
+      })
+      return data
+    },
+    enabled: !!dateRange?.start && !!dateRange?.end
+  })
+}

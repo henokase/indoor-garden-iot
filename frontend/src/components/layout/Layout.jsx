@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import logo from "../../assets/logo.png";
+
 export default function Layout({ children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -37,46 +39,48 @@ export default function Layout({ children }) {
             {/* Sidebar for larger screens */}
             {!isLoactionLogin && (
                 <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-                    <div className="flex flex-col flex-grow bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                    <div className="flex flex-col flex-grow bg-green-200 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between h-16 px-4">
                             <div className="flex items-center gap-2">
-                                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                                    <Leaf className="h-6 w-6 text-white" />
+                                <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-full">
+                                    <img src={logo} className="h-12" />
                                 </div>
                                 <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text">
                                     GardenSense
                                 </span>
                             </div>
                         </div>
-                        <div className="flex-1 flex flex-col p-4 space-y-3">
-                            {navigation.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <Link
-                                        key={item.name}
-                                        to={item.href}
-                                        className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors
-                    ${
-                        location.pathname === item.href
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                    }`}
-                                    >
-                                        <Icon className="w-5 h-5" />
-                                        {item.name}
-                                    </Link>
-                                );
-                            })}
-                            <div className="mt-auto">
-                                <button
-                                    onClick={() => setShowLogoutConfirm(true)}
-                                    className="w-full flex items-center px-4 py-2 text-gray-600 hover:text-red-500 
-            dark:text-gray-300 dark:hover:text-red-400 transition-colors"
-                                >
-                                    <LogOut className="w-5 h-5 mr-3" />
-                                    <span>Logout</span>
-                                </button>
+                        <div className="flex flex-col justify-between h-full">
+                            <div className="flex-1 flex flex-col p-4 space-y-3">
+                                {navigation.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            to={item.href}
+                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors
+                        ${
+                            location.pathname === item.href
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                        }`}
+                                        >
+                                            <Icon className="w-5 h-5" />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
                             </div>
+                                <div className="p-4">
+                                    <button
+                                        onClick={() => setShowLogoutConfirm(true)}
+                                        className="w-full flex items-center px-4 py-2 text-gray-600 hover:text-red-500 
+                dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+                                    >
+                                        <LogOut className="w-5 h-5 mr-3" />
+                                        <span>Logout</span>
+                                    </button>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -94,8 +98,8 @@ export default function Layout({ children }) {
                             >
                                 <Menu className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                             </button>
-                            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                                <Leaf className="h-6 w-6 text-white" />
+                            <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-full">
+                                <img src={logo} className="h-10" />
                             </div>
                             <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text">
                                 GardenSense
@@ -127,8 +131,11 @@ export default function Layout({ children }) {
                                 >
                                     <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                                         <div className="flex items-center gap-2 p-4 border-b border-gray-200 dark:border-gray-700">
-                                            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                                                <Leaf className="h-5 w-5 text-white" />
+                                            <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-full">
+                                                <img
+                                                    src={logo}
+                                                    className="h-10"
+                                                />
                                             </div>
                                             <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text">
                                                 GardenSense
@@ -142,45 +149,38 @@ export default function Layout({ children }) {
                                                 <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
                                             </button>
                                         </div>
-                                        <div className="flex flex-col flex-grow p-4 space-y-3">
-                                            {navigation.map((item) => {
-                                                const Icon = item.icon;
-                                                return (
-                                                    <Link
-                                                        key={item.name}
-                                                        to={item.href}
-                                                        onClick={() =>
-                                                            setIsSidebarOpen(
-                                                                false
-                                                            )
-                                                        }
-                                                        className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors
-                          ${
-                              location.pathname === item.href
-                                  ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                          }`}
-                                                    >
-                                                        <Icon className="w-5 h-5" />
-                                                        {item.name}
-                                                    </Link>
-                                                );
-                                            })}
-                                            <div className="mt-auto">
-                                                <button
-                                                    onClick={() =>
-                                                        setShowLogoutConfirm(
-                                                            true
-                                                        )
-                                                    }
-                                                    className="w-full flex items-center px-4 py-2 text-gray-600 hover:text-red-500 
-            dark:text-gray-300 dark:hover:text-red-400 transition-colors"
-                                                >
-                                                    <LogOut className="w-5 h-5 mr-3" />
-                                                    <span>Logout</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <div className="flex flex-col justify-between h-full">
+                            <div className="flex-1 flex flex-col p-4 space-y-3">
+                                {navigation.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            to={item.href}
+                                            className={`flex items-center gap-3 px-4 py-3 font-medium rounded-lg transition-colors
+                        ${
+                            location.pathname === item.href
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                        }`}
+                                        >
+                                            <Icon className="w-5 h-5" />
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                                <div className="pl-4 pb-24">
+                                    <button
+                                        onClick={() => setShowLogoutConfirm(true)}
+                                        className="w-full flex items-center px-4 py-2 text-gray-600 hover:text-red-500 
+                dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+                                    >
+                                        <LogOut className="w-5 h-5 mr-3" />
+                                        <span>Logout</span>
+                                    </button>
+                                </div>
+                        </div>
                                     </div>
                                 </motion.div>
                             </>
@@ -228,7 +228,7 @@ export default function Layout({ children }) {
                     isLoactionLogin ? "w-full" : "flex-1 md:pl-64 max-md:pt-16"
                 }
             >
-                <main className="min-h-screen dark:bg-gray-900 dark:text-gray-100">
+                <main className="min-h-screen bg-green-100 dark:bg-gray-900 dark:text-gray-100">
                     {children}
                 </main>
             </div>

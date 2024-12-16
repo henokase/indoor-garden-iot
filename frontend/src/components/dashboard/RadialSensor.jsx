@@ -5,7 +5,7 @@ export function RadialSensor({ title, value, unit, color, icon: Icon, min = 0, m
 
   return (
     <motion.div 
-      className="bg-white dark:bg-gray-800 rounded-lg p-4 flex flex-col items-center shadow-sm"
+      className="bg-green-50 dark:bg-gray-800 rounded-lg p-4 flex flex-col items-center shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}

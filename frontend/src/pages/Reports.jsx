@@ -2,9 +2,10 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { UsageStats } from '../components/reports/UsageStats'
 import { UsageChart } from '../components/reports/UsageChart'
-import { Battery, Droplets, Thermometer } from 'lucide-react'
+import { Battery, Droplets } from 'lucide-react'
 import { SensorHistoryChart } from '../components/reports/SensorHistoryChart'
 import DateRangePicker from '../components/reports/DateRangePicker'
+import { useResourceStats } from '../hooks/useResourceUsage'
 
 export default function Reports() {
   const [dateRange, setDateRange] = useState(() => {
@@ -13,6 +14,7 @@ export default function Reports() {
     return { start, end }
   })
   const [selectedChartType, setSelectedChartType] = useState('resources') // 'resources' or 'sensors'
+  const { data: resourceStats, isLoading } = useResourceStats(dateRange)
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -40,67 +42,54 @@ export default function Reports() {
           title="Energy Usage"
           icon={<Battery className="w-6 h-6" />}
           color="text-green-500"
-          metrics={[
-            { label: 'Daily', value: '2.5', unit: 'kWh' },
-            { label: 'Weekly', value: '15.8', unit: 'kWh' },
-            { label: 'Monthly', value: '65.3', unit: 'kWh' }
-          ]}
+          stats={resourceStats?.energy}
+          unit="kWh"
+          isLoading={isLoading}
         />
         <UsageStats
           title="Water Usage"
           icon={<Droplets className="w-6 h-6" />}
           color="text-blue-500"
-          metrics={[
-            { label: 'Daily', value: '1.2', unit: 'L' },
-            { label: 'Weekly', value: '8.5', unit: 'L' },
-            { label: 'Monthly', value: '34.2', unit: 'L' }
-          ]}
+          stats={resourceStats?.water}
+          unit="L"
+          isLoading={isLoading}
         />
       </motion.div>
 
-      {/* Date Range and Chart Type Selection */}
+      {/* Chart Type Selector */}
       <motion.div 
-        className="bg-white rounded-2xl p-6 mb-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        className="flex max-md:flex-col justify-between gap-4 mb-6 bg-green-50 rounded-lg shadow-sm p-6 dark:bg-gray-800"
+        {...fadeIn}
       >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Calendar Selection */}
-          <div className="flex items-center gap-4">
-            <DateRangePicker dateRange={dateRange} onChange={setDateRange} />
-          </div> 
-
-          {/* Chart Type Selection */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedChartType('resources')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                ${selectedChartType === 'resources' 
-                  ? 'bg-green-50 text-green-600' 
-                  : 'hover:bg-gray-50'}`}
-            >
-              Resource Usage
-            </button>
-            <button
-              onClick={() => setSelectedChartType('sensors')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                ${selectedChartType === 'sensors' 
-                  ? 'bg-orange-50 text-orange-600' 
-                  : 'hover:bg-gray-50'}`}
-            >
-              Sensor Data
-            </button>
-          </div>
+        <DateRangePicker dateRange={dateRange} onChange={setDateRange} />
+        <div className='flex gap-10'>
+        <button
+          className={`px-4 py-2 rounded-lg ${
+            selectedChartType === 'resources'
+              ? 'bg-gray-900 text-white'
+              : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+          }`}
+          onClick={() => setSelectedChartType('resources')}
+        >
+          Resource Usage
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg ${
+            selectedChartType === 'sensors'
+              ? 'bg-gray-900 text-white'
+              : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+          }`}
+          onClick={() => setSelectedChartType('sensors')}
+        >
+          Sensor Data
+        </button>
         </div>
       </motion.div>
 
-      {/* Chart */}
-      <motion.div 
-        className="bg-white rounded-2xl p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+      {/* Charts */}
+      <motion.div
+        className="bg-green-50 rounded-lg shadow-sm p-6 dark:bg-gray-800"
+        {...fadeIn}
       >
         {selectedChartType === 'resources' ? (
           <UsageChart dateRange={dateRange} />
@@ -110,4 +99,4 @@ export default function Reports() {
       </motion.div>
     </div>
   )
-} 
+}

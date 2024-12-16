@@ -1,15 +1,15 @@
 import express from 'express'
 import { resourceController } from '../controllers/resourceController.js'
-import { validateRequest } from '../middleware/validateRequest.js'
-import { schemas } from '../utils/validation.js'
 
 const router = express.Router()
 
-router.get('/usage', resourceController.getUsage)
-router.get('/daily-stats', resourceController.getDailyStats)
-router.get('/export',
-  validateRequest(schemas.resource.export),
-  resourceController.exportUsageReport
-)
+// Get resource usage data by date range
+router.get('/usage', resourceController.getUsageByDateRange)
 
-export default router 
+// Get resource usage statistics
+router.get('/stats', resourceController.getUsageStats)
+
+// Track resource usage
+router.post('/track', resourceController.trackUsage)
+
+export default router

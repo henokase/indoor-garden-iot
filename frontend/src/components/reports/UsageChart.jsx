@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useResourceUsage } from '../../hooks/useResourceUsage'
 
 export function UsageChart({ dateRange }) {
   const [selectedMetrics, setSelectedMetrics] = useState(['energy', 'water'])
-  const { data: rawData, isLoading } = useResourceUsage(dateRange)
+  const { data: rawData = [], isLoading } = useResourceUsage(dateRange)
 
   const metrics = [
     { id: 'energy', label: 'Energy', color: '#22c55e', unit: 'kWh' },
@@ -12,14 +12,24 @@ export function UsageChart({ dateRange }) {
   ]
 
   // Format data for Recharts
-  const formattedData = rawData ? Object.entries(rawData).map(([timestamp, values]) => ({
-    timestamp: new Date(timestamp).getTime(),
-    energy: values.energy,
-    water: values.water
-  })).sort((a, b) => a.timestamp - b.timestamp) : []
+  const formattedData = rawData.map(usage => ({
+    date: new Date(usage.date).toLocaleDateString(),
+    energy: usage.energy?.total || 0,
+    water: usage.water?.total || 0
+  }))
 
   if (isLoading) {
-    return <div className="h-[400px] flex items-center justify-center">Loading...</div>
+    return (
+      <div className="h-[400px] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+      </div>
+    )
+  }
+
+  const formatValue = (value, name) => {
+    const metric = metrics.find(m => m.id === name.toLowerCase())
+    if (!metric) return value
+    return `${value} ${metric.unit}`
   }
 
   return (
@@ -35,10 +45,12 @@ export function UsageChart({ dateRange }) {
                   : [...prev, metric.id]
               )
             }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
               ${selectedMetrics.includes(metric.id)
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? metric.id === 'energy' 
+                  ? 'bg-green-50 text-green-600 dark:bg-green-900 dark:text-green-300'
+                  : 'bg-blue-50 text-blue-600 dark:bg-blue-900 dark:text-blue-300'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
           >
             {metric.label}
@@ -48,50 +60,51 @@ export function UsageChart({ dateRange }) {
 
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={formattedData}>
-            <CartesianGrid strokeDasharray="3 3" />
+          <BarChart data={formattedData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
             <XAxis 
-              dataKey="timestamp" 
-              type="number"
-              domain={['dataMin', 'dataMax']}
-              tickFormatter={(timestamp) => new Date(timestamp).toLocaleDateString()} 
-              scale="time"
+              dataKey="date"
+              tick={{ fontSize: 12 }}
+              tickFormatter={(value) => {
+                const date = new Date(value)
+                return date.toLocaleDateString('en-US', { 
+                  month: 'short',
+                  day: 'numeric'
+                })
+              }}
             />
             <YAxis yAxisId="energy" orientation="left" stroke="#22c55e" />
             <YAxis yAxisId="water" orientation="right" stroke="#3b82f6" />
-            <Tooltip 
-              labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
-              formatter={(value, name, props) => {
-                const metric = metrics.find(m => m.id === name)
-                return [`${value} ${metric.unit}`, metric.label]
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #E5E7EB',
+                borderRadius: '0.5rem'
               }}
+              formatter={formatValue}
             />
             <Legend />
             {selectedMetrics.includes('energy') && (
-              <Line
+              <Bar
                 yAxisId="energy"
-                type="monotone"
                 dataKey="energy"
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={false}
                 name="Energy"
+                fill="#22c55e"
+                radius={[4, 4, 0, 0]}
               />
             )}
             {selectedMetrics.includes('water') && (
-              <Line
+              <Bar
                 yAxisId="water"
-                type="monotone"
                 dataKey="water"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={false}
                 name="Water"
+                fill="#3b82f6"
+                radius={[4, 4, 0, 0]}
               />
             )}
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </div>
   )
-} 
+}

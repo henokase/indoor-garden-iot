@@ -37,7 +37,7 @@ export function PasswordCard() {
 
     return (
         <motion.div
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+            className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -61,8 +61,7 @@ export function PasswordCard() {
                                 currentPassword: e.target.value,
                             }))
                         }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 dark:border-gray-600 
-                            bg-transparent dark:bg-gray-800 focus:ring-green-500"
+                        className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
                     />
                 </div>
                 <div>
@@ -78,8 +77,7 @@ export function PasswordCard() {
                                 newPassword: e.target.value,
                             }))
                         }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 dark:border-gray-600 
-                            bg-transparent dark:bg-gray-800 focus:ring-green-500"
+                        className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
                     />
                 </div>
                 <div>
@@ -95,8 +93,7 @@ export function PasswordCard() {
                                 confirmPassword: e.target.value,
                             }))
                         }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 dark:border-gray-600 
-                            bg-transparent dark:bg-gray-800 focus:ring-green-500"
+                        className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
                     />
                 </div>
                 <motion.button

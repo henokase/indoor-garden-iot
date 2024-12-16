@@ -130,11 +130,36 @@ export const sensorService = {
       }
     }
 
+    // Aggregate readings by hour
+    const hourlyReadings = new Map()
+
+    readings.forEach(reading => {
+      const timestamp = new Date(reading.timestamp)
+      // Set minutes and seconds to 0 to group by hour
+      timestamp.setMinutes(0, 0, 0)
+      const hourKey = timestamp.getTime()
+
+      if (!hourlyReadings.has(hourKey)) {
+        hourlyReadings.set(hourKey, {
+          sum: reading.value,
+          count: 1,
+          timestamp: timestamp
+        })
+      } else {
+        const current = hourlyReadings.get(hourKey)
+        current.sum += reading.value
+        current.count++
+      }
+    })
+
+    // Calculate averages and format data
+    const aggregatedData = Array.from(hourlyReadings.values()).map(({ sum, count, timestamp }) => ({
+      timestamp,
+      value: Math.round((sum / count) * 100) / 100 // Round to 2 decimal places
+    }))
+
     return {
-      data: readings.map(reading => ({
-        timestamp: reading.timestamp,
-        value: reading.value
-      }))
+      data: aggregatedData
     }
   }
 }

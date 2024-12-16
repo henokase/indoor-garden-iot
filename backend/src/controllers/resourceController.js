@@ -1,49 +1,57 @@
-import { asyncHandler } from '../utils/asyncHandler.js'
 import { resourceService } from '../services/resourceService.js'
-import { exportUtils } from '../utils/exportUtils.js'
 import { ApiError } from '../utils/ApiError.js'
 
 export const resourceController = {
-  getUsage: asyncHandler(async (req, res) => {
-    const { type, startDate, endDate } = req.query
-    const usage = await resourceService.getUsageStats(type, { startDate, endDate })
-    res.json(usage)
-  }),
+  async getUsageByDateRange(req, res, next) {
+    try {
+      const { startDate, endDate } = req.query
 
-  getDailyStats: asyncHandler(async (req, res) => {
-    const { type, date } = req.query
-    const stats = await resourceService.getDailyUsage(type, date)
-    res.json(stats)
-  }),
+      if (!startDate || !endDate) {
+        throw new ApiError(400, 'Start date and end date are required')
+      }
 
-  exportUsageReport: asyncHandler(async (req, res) => {
-    const { type, startDate, endDate, format } = req.query
-    const data = await resourceService.getUsageStats(type, { startDate, endDate })
-    
-    if (format === 'csv') {
-      const csv = exportUtils.generateCSV(data, [
-        { key: 'date', label: 'Date' },
-        { key: 'total', label: 'Total Usage' },
-        { key: 'unit', label: 'Unit' }
-      ])
-      res.header('Content-Type', 'text/csv')
-      res.attachment(`${type}-usage-report.csv`)
-      return res.send(csv)
+      const usage = await resourceService.getUsageByDateRange(startDate, endDate)
+      res.json(usage)
+    } catch (error) {
+      next(error instanceof ApiError ? error : new ApiError(500, error.message))
     }
-    
-    if (format === 'pdf') {
-      const pdf = exportUtils.generatePDF({
-        title: `${type.toUpperCase()} Usage Report`,
-        table: {
-          headers: ['Date', 'Total Usage', 'Unit'],
-          data: data.map(d => [d.date, d.total, d.unit])
-        }
+  },
+
+  async getUsageStats(req, res, next) {
+    try {
+      const { startDate, endDate } = req.query
+
+      if (!startDate || !endDate) {
+        throw new ApiError(400, 'Start date and end date are required')
+      }
+
+      const stats = await resourceService.getUsageStats(startDate, endDate)
+      res.json(stats)
+    } catch (error) {
+      next(error instanceof ApiError ? error : new ApiError(500, error.message))
+    }
+  },
+
+  async trackUsage(req, res, next) {
+    try {
+      const { date, energy, water } = req.body
+
+      if (!date) {
+        throw new ApiError(400, 'Date is required')
+      }
+
+      if (!energy && !water) {
+        throw new ApiError(400, 'At least one resource usage (energy or water) must be provided')
+      }
+
+      const usage = await resourceService.trackUsage({
+        date: new Date(date),
+        energy,
+        water
       })
-      res.header('Content-Type', 'application/pdf')
-      res.attachment(`${type}-usage-report.pdf`)
-      return res.send(pdf)
+      res.status(201).json(usage)
+    } catch (error) {
+      next(error instanceof ApiError ? error : new ApiError(500, error.message))
     }
-    
-    throw new ApiError(400, 'Invalid export format')
-  })
-} 
+  }
+}

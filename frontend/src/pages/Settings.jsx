@@ -9,19 +9,7 @@ import { toast } from "react-hot-toast";
 
 export default function Settings() {
     const [formData, setFormData] = useState({
-        preferences: {
-            temperatureUnit: 'C',
-            minTemperatureThreshold: 15,
-            maxTemperatureThreshold: 25,
-            minMoistureThreshold: 40,
-            maxMoistureThreshold: 60,
-            lightingStartHour: 6,
-            lightingEndHour: 18,
-            fertilizerSchedule: 'weekly',
-            fertilizerTime: 8,
-            fertilizerDayOfWeek: 'Monday',
-            fertilizerDayOfMonth: 1
-        },
+        preferences: {},
         notifications: {
             email: {
                 enabled: false,
@@ -38,11 +26,11 @@ export default function Settings() {
         if (settings) {
             setFormData(prev => ({
                 ...prev,
-                ...settings,
+                preferences: settings.preferences || {},
                 notifications: {
                     email: {
                         enabled: settings.notifications?.email?.enabled ?? false,
-                        address: settings.notifications?.email?.address || ''
+                        address: settings.notifications?.email?.address ?? ''
                     },
                     push: settings.notifications?.push ?? false
                 }
@@ -105,7 +93,7 @@ export default function Settings() {
     return (
         <div className="p-6 max-w-3xl mx-auto">
             <motion.h1
-                className="text-2xl font-bold mb-6"
+                className="text-2xl text-black dark:text-white font-bold mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
