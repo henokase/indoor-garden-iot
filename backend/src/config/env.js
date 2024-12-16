@@ -24,12 +24,10 @@ export const env = {
     MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
   },
 
-  ALERTS: {
-    EMAIL_ENABLED: process.env.ALERT_EMAIL_ENABLED === 'true',
-    SMS_ENABLED: process.env.ALERT_SMS_ENABLED === 'true',
-    EMAIL_SERVICE: process.env.EMAIL_SERVICE,
-    EMAIL_USER: process.env.EMAIL_USER,
-    EMAIL_PASS: process.env.EMAIL_PASS,
-    SMS_API_KEY: process.env.SMS_API_KEY
+  EMAIL: {
+    SERVICE: process.env.EMAIL_SERVICE,
+    USER: process.env.SMTP_USER,
+    PASS: process.env.SMTP_PASS,
+    PORT: process.env.SMTP_PORT
   }
 } 

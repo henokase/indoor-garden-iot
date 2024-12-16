@@ -53,8 +53,6 @@ export default function Settings() {
             }
 
             current[keys[keys.length - 1]] = type === 'checkbox' ? checked : value;
-            
-            console.log('Updated formData:', newData);
             return newData;
         });
     };
@@ -73,7 +71,6 @@ export default function Settings() {
             }
         }
         try {
-            console.log('Submitting formData:', formData);
             await updateSettingsMutation.mutateAsync(formData);
             toast.success("Settings updated successfully");
         } catch (error) {
@@ -93,7 +90,7 @@ export default function Settings() {
     return (
         <div className="p-6 max-w-3xl mx-auto">
             <motion.h1
-                className="text-2xl text-black dark:text-white font-bold mb-6"
+                className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}

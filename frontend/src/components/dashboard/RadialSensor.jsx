@@ -13,7 +13,7 @@ export function RadialSensor({ title, value, unit, color, icon: Icon, min = 0, m
       <h3 className={`font-medium ${color} mb-2`}>{title}</h3>
       <div className="relative w-32 h-32">
         {/* Background circle */}
-        <div className={`absolute inset-0 rounded-full border-8 border-gray-200 dark:border-gray-700`} />
+        <div className={`absolute inset-0 rounded-full border-8 border-green-100 dark:border-gray-900`} />
         
         {/* Progress circle */}
         <svg className="absolute inset-0 w-full h-full -rotate-90">

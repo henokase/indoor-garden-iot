@@ -40,15 +40,21 @@ export function useDeviceStatus() {
       subscribeToAll()
 
       socket.on('device:update', (data) => {
-        // console.log('Received device update:', data)
         setDeviceStatusData(prevData => {
           const updatedData = Array.isArray(prevData) ? [...prevData] : []
           const deviceIndex = updatedData.findIndex(d => d.name === data.name)
           
           if (deviceIndex !== -1) {
-            updatedData[deviceIndex] = { ...updatedData[deviceIndex], ...data }
+            updatedData[deviceIndex] = { 
+              ...updatedData[deviceIndex], 
+              ...data,
+              mode: data.autoMode ? 'auto' : 'manual' // Add mode property
+            }
           } else {
-            updatedData.push(data)
+            updatedData.push({
+              ...data,
+              mode: data.autoMode ? 'auto' : 'manual' // Add mode property
+            })
           }
           
           return updatedData
@@ -68,6 +74,24 @@ export function useDeviceStatus() {
   return { deviceStatusData, isLoading, error }
 }
 
+export function useDeviceStatusForNotifications() {
+  const { deviceStatusData, isLoading, error } = useDeviceStatus();
+
+  const transformedStatus = deviceStatusData.reduce((acc, device) => {
+    acc[device.name] = {
+      ...device,
+      mode: device.autoMode ? 'auto' : 'manual'
+    };
+    return acc;
+  }, {});
+
+  return {
+    data: transformedStatus,
+    isLoading,
+    error
+  };
+}
+
 export function useToggleDevice() {
   const queryClient = useQueryClient()
   
@@ -78,10 +102,8 @@ export function useToggleDevice() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['deviceStatus'], (oldData) => {
-        if (!Array.isArray(oldData)) return [data]
-        return oldData.map(device => 
-          device.name === data.name ? data : device
-        )
+        if (!oldData) return { [data.name]: data }
+        return { ...oldData, [data.name]: data }
       })
     },
     onError: (error) => {
@@ -101,10 +123,8 @@ export function useToggleAutoMode() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['deviceStatus'], (oldData) => {
-        if (!Array.isArray(oldData)) return [data]
-        return oldData.map(device => 
-          device.name === data.name ? data : device
-        )
+        if (!oldData) return { [data.name]: data }
+        return { ...oldData, [data.name]: data }
       })
     },
     onError: (error) => {

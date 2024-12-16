@@ -45,7 +45,7 @@ export function useSensorData() {
 
       // Handle sensor updates
       socket.on('sensor:update', (data) => {
-        console.log('Received sensor update:', data)
+        // console.log('Received sensor update:', data)
         setSensorData(prevData => ({
           ...prevData,
           [data.type]: data.value,

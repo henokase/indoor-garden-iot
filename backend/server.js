@@ -9,11 +9,13 @@ import { AutomationService } from './src/services/automationService.js'
 
 // Import routes
 import alertRoute from './src/routes/alertRoutes.js'
+import authRoute from './src/routes/authRoutes.js'
 import deviceRoute from './src/routes/deviceRoutes.js'
 import resourceRoute from './src/routes/resourceRoutes.js'
 import sensorRoute from './src/routes/sensorRoutes.js'
 import settingsRoute from './src/routes/settingsRoutes.js'
 import systemRoute from './src/routes/systemRoutes.js'
+
 
 const app = express()
 
@@ -47,6 +49,7 @@ const startServer = async () => {
 
     // Routes
     app.use('/api/alerts', alertRoute)
+    app.use('/api/auth', authRoute)
     app.use('/api/devices', deviceRoute)
     app.use('/api/resources', resourceRoute)
     app.use('/api/sensors', sensorRoute)

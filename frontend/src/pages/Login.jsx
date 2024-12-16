@@ -2,28 +2,25 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import api from "../lib/axios";
+import useAuth from "../hooks/useAuth";
 
 import logo from "../assets/logo.png";
 
 export default function Login() {
     const [password, setPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const { loginMutation, isLoading } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
 
         try {
-            const { data } = await api.post("/auth/login", { password });
+            const { data } = await loginMutation(password);
             localStorage.setItem("isAuthenticated", "true");
-            navigate("/dashboard");
+            navigate("/");
             toast.success("Welcome to GardenSense!");
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid password");
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -60,17 +57,21 @@ export default function Login() {
                         />
                     </div>
 
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 
-              rounded-lg font-medium transition-colors disabled:opacity-50 
-              disabled:cursor-not-allowed"
-                    >
-                        {isLoading ? "Entering Garden..." : "Enter Garden"}
-                    </motion.button>
+                    {isLoading ? (
+                        <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                        </div>
+                    ) : (
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 
+              rounded-lg font-medium transition-colors"
+                        >
+                            Enter Garden
+                        </motion.button>
+                    )}
                 </form>
             </motion.div>
         </div>

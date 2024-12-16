@@ -201,7 +201,7 @@ export function PreferencesCard({ formData = {}, onChange }) {
               onChange={onChange}
               min="0"
               max="23"
-              className="w-full input input-success input-sm bg-transparent text-black dark:text-white"
+              className="w-full input input-success bg-transparent text-black dark:text-white"
             />
           </div>
           <div>
@@ -215,7 +215,7 @@ export function PreferencesCard({ formData = {}, onChange }) {
               onChange={onChange}
               min="0"
               max="23"
-              className="w-full input input-success input-sm bg-transparent text-black dark:text-white"
+              className="w-full input input-success bg-transparent text-black dark:text-white"
             />
           </div>
         </div>
@@ -249,7 +249,7 @@ export function PreferencesCard({ formData = {}, onChange }) {
             onChange={onChange}
             min="0"
             max="23"
-            className="w-full input input-success input-sm bg-transparent text-black dark:text-white"
+            className="w-full input input-success bg-transparent text-black dark:text-white"
           />
         </div>
 
@@ -262,7 +262,7 @@ export function PreferencesCard({ formData = {}, onChange }) {
               name="preferences.fertilizerDayOfWeek"
               value={preferences.fertilizerDayOfWeek}
               onChange={onChange}
-              className="input input-bordered input-success w-full text-black dark:text-white bg-transparent"
+              className="select select-success w-full text-black dark:text-white bg-transparent dark:bg-gray-800"
             >
               {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                 <option key={day} value={day}>{day}</option>
@@ -283,7 +283,7 @@ export function PreferencesCard({ formData = {}, onChange }) {
               onChange={onChange}
               min="1"
               max="31"
-              className="w-full input input-success input-sm bg-transparent text-black dark:text-white"
+              className="w-full input input-success bg-transparent text-black dark:text-white"
             />
           </div>
         )}

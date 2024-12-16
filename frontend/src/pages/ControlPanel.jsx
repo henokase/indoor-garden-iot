@@ -3,6 +3,7 @@ import { Fan, Droplets, FlaskConical, Lightbulb } from "lucide-react";
 import { DeviceCard } from "../components/control/DeviceCard";
 import { useState, useMemo } from "react";
 import { toast } from "react-hot-toast";
+import { motion } from "framer-motion";
 
 export default function ControlPanel() {
     const { deviceStatusData = [], isLoading, error } = useDeviceStatus();
@@ -67,10 +68,20 @@ export default function ControlPanel() {
     }
 
     return (
-        <div className="p-6 space-y-6">
-            {mergedDevices.map((device) => (
-                <DeviceCard key={device.name} device={device} />
-            ))}
+        <div className="p-4 md:p-6 max-w-7xl mx-auto">
+            <motion.h1
+                className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
+                Control Panel
+            </motion.h1>
+            <div className="space-y-6">
+                {mergedDevices.map((device) => (
+                    <DeviceCard key={device.name} device={device} />
+                ))}
+            </div>
         </div>
     );
 }
