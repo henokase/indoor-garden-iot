@@ -1,0 +1,164 @@
+Indoor Garden Controller - Detailed Workflow
+==========================================
+
+1. MQTT Communication Flows
+-------------------------
+
+A. Device → MQTT Server (Publishing)
+   1. Sensor Data (Topic: "indoor-garden/sensors")
+      - Published every 30 seconds
+      - Payload Structure:
+        {
+          "temperature": float,    // Current temperature in Celsius
+          "moisture": int,         // Soil moisture percentage (0-100)
+          "timestamp": long        // Unix timestamp or millis() in offline mode
+        }
+
+   2. Device States (Topic: "indoor-garden/devices")
+      - Published on state changes
+      - Payload Structure:
+        {
+          "devices": {
+            "fan": {
+              "status": bool,      // true = ON, false = OFF
+              "autoMode": bool     // true = automatic control
+            },
+            "irrigation": {
+              "status": bool,
+              "autoMode": bool
+            },
+            "lighting": {
+              "status": bool,
+              "autoMode": bool
+            },
+            "fertilizer": {
+              "status": bool,
+              "autoMode": bool
+            }
+          }
+        }
+
+B. MQTT Server → Device (Subscribing)
+   Topic: "indoor-garden/commands"
+   - Received when frontend sends control commands
+   - Payload Structure:
+     {
+       "device": string,          // "fan"|"irrigation"|"lighting"|"fertilizer"
+       "status": bool,            // Desired state
+       "autoMode": bool           // Control mode
+     }
+
+2. System Operation Modes
+-----------------------
+
+A. Online Mode
+   - Active MQTT connection
+   - Real-time data transmission
+   - Remote control capability
+   - NTP time synchronization
+   - LCD displays "ON" status
+
+B. Offline Mode
+   - Autonomous operation
+   - Local sensor-based control
+   - Fixed timing for lighting
+   - All devices forced to autoMode
+   - LCD displays "OFF" status
+
+3. Control Systems
+----------------
+
+A. Temperature Control
+   - Sensor: DHT22 on GPIO4
+   - Actuator: Fan on GPIO16 (PWM capable)
+   - Thresholds: 
+     * MIN: 15.0°C
+     * MAX: 28.0°C
+   - Control Logic:
+     * If temp > MAX: Fan ON
+     * If temp < MIN: Fan OFF
+
+B. Moisture Control
+   - Sensor: Analog sensor on GPIO36
+   - Actuator: Pump on GPIO17
+   - Thresholds:
+     * MIN: 40%
+     * MAX: 60%
+   - Reading Method: 
+     * 5-point moving average
+     * Mapped from 4095 (dry) to 0 (wet)
+   - Control Logic:
+     * If moisture < MIN: Pump ON
+     * If moisture > MAX: Pump OFF
+
+C. Lighting Control
+   - Actuator: Light on GPIO18 (PWM capable)
+   - Timing: 6 AM - 6 PM
+   - Based on NTP time when online
+   - 24-hour cycle calculation when offline
+
+D. Fertilizer Control
+   - Actuator: Fertilizer pump on GPIO19
+   - Duration: 10 minutes per cycle
+   - Manual or automated scheduling
+
+4. Display System
+---------------
+LCD Display (I2C):
+- Connection: SDA (GPIO21), SCL (GPIO22)
+- Update Interval: 2 seconds
+- Display Format:
+  * Line 1: Temperature reading
+  * Line 2: Moisture level & Connection status
+
+5. Timing Parameters
+------------------
+- Sensor Updates: 30 seconds
+- LCD Updates: 2 seconds
+- MQTT Reconnection: 5 seconds
+- WiFi Retry Delay: 5 seconds
+- Connection Check: 10 seconds
+- Fertilizer Duration: 10 minutes
+- WiFi Maximum Retries: 5 attempts
+
+6. Error Handling & Failsafes
+---------------------------
+A. Sensor Reading Protection
+   - Temperature validation (isnan check)
+   - Moisture averaging for stability
+   - Bounds checking on all readings
+
+B. Connection Management
+   - WiFi connection monitoring
+   - MQTT connection verification
+   - Automatic mode switching
+   - State synchronization on reconnection
+
+C. Device Protection
+   - Status verification before activation
+   - Timeout protection for fertilizer
+   - Automatic mode fallback in offline state
+
+7. Data Processing
+----------------
+A. Moisture Calculation
+   - Raw ADC reading (0-4095)
+   - 5-point moving average
+   - Percentage conversion (0-100%)
+
+B. Temperature Processing
+   - Direct reading from DHT22
+   - Error checking before updating
+   - Celsius temperature scale
+
+8. State Management
+-----------------
+- Device states tracked in memory
+- Persistent across connection changes
+- Synchronized with MQTT when online
+- Automated control in offline mode
+- LCD status indication
+
+This system provides a robust, fault-tolerant control solution for indoor garden management, 
+with both autonomous and connected operation capabilities. The multi-layered approach ensures 
+continuous operation regardless of network status while maintaining optimal growing conditions.

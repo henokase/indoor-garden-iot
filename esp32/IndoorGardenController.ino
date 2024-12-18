@@ -1,17 +1,21 @@
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <DHT.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
 // Pin Definitions
-#define DHT_PIN D4
-#define MOISTURE_SENSOR_PIN A0
-#define FAN_PIN D1
-#define PUMP_PIN D2
-#define LIGHT_PIN D3
-#define FERTILIZER_PIN D5
+#define DHT_PIN 4
+#define MOISTURE_SENSOR_PIN 36
+#define FAN_PIN 16
+#define PUMP_PIN 17
+#define LIGHT_PIN 18
+#define FERTILIZER_PIN 19
+#define I2C_SDA 21  // Default I2C SDA pin for ESP32
+#define I2C_SCL 22  // Default I2C SCL pin for ESP32
 
 // Constants
 #define DHT_TYPE DHT22
@@ -40,6 +44,7 @@ PubSubClient mqtt(espClient);
 DHT dht(DHT_PIN, DHT_TYPE);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // Adjust address if needed
 
 // Device States
 struct DeviceState {
@@ -50,7 +55,6 @@ struct DeviceState {
 // Sensor Data
 struct SensorData {
   float temperature = 0;
-  float humidity = 0;
   int moisture = 0;
   unsigned long lastUpdate = 0;
 } sensorData;
@@ -60,6 +64,8 @@ unsigned long lastSensorUpdate = 0;
 const unsigned long SENSOR_UPDATE_INTERVAL = 30000; // 30 seconds
 unsigned long lastMqttReconnectAttempt = 0;
 const unsigned long MQTT_RECONNECT_INTERVAL = 5000; // 5 seconds
+const unsigned long LCD_UPDATE_INTERVAL = 2000; // 2 seconds
+unsigned long lastLcdUpdate = 0;
 
 // Additional Constants for Offline Automation
 #define WIFI_RETRY_DELAY 5000
@@ -114,6 +120,16 @@ void setup() {
   } else {
     enterOfflineMode();
   }
+  
+  // Initialize I2C
+  Wire.begin(I2C_SDA, I2C_SCL);
+  
+  // Initialize LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Initializing...");
 }
 
 void loop() {
@@ -144,10 +160,17 @@ void loop() {
     }
     lastSensorUpdate = currentMillis;
   }
+
+  // Update LCD display
+  if (currentMillis - lastLcdUpdate >= LCD_UPDATE_INTERVAL) {
+    updateLCD();
+    lastLcdUpdate = currentMillis;
+  }
 }
 
 void setupWiFi() {
   Serial.println("Connecting to WiFi...");
+  WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
   while (WiFi.status() != WL_CONNECTED) {
@@ -204,15 +227,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 void updateSensorData() {
-  // Read sensors with error checking
+  // Read temperature with error checking
   float newTemp = dht.readTemperature();
-  float newHumidity = dht.readHumidity();
   
   if (!isnan(newTemp)) {
     sensorData.temperature = newTemp;
-  }
-  if (!isnan(newHumidity)) {
-    sensorData.humidity = newHumidity;
   }
   
   // Read moisture with moving average to reduce noise
@@ -225,7 +244,7 @@ void updateSensorData() {
   moistureTotal += moistureReadings[readIndex];
   readIndex = (readIndex + 1) % 5;
   
-  sensorData.moisture = map(moistureTotal / 5, 0, 1023, 100, 0);
+  sensorData.moisture = map(moistureTotal / 5, 0, 4095, 100, 0);
   sensorData.lastUpdate = isOfflineMode ? millis() : timeClient.getEpochTime();
 }
 
@@ -233,7 +252,6 @@ void publishSensorData() {
   StaticJsonDocument<200> doc;
   
   doc["temperature"] = sensorData.temperature;
-  doc["humidity"] = sensorData.humidity;
   doc["moisture"] = sensorData.moisture;
   doc["timestamp"] = sensorData.lastUpdate;
   
@@ -336,5 +354,24 @@ void handleOfflineAutomation() {
     digitalWrite(FERTILIZER_PIN, LOW);
     fertilizer.status = false;
     fertilizerRunning = false;
+  }
+}
+
+void updateLCD() {
+  // First row: Temperature
+  lcd.setCursor(0, 0);
+  lcd.printf("Temp: %.1fC", sensorData.temperature);
+  
+  // Second row: Moisture and Status
+  lcd.setCursor(0, 1);
+  lcd.printf("Moist:%d%% ", sensorData.moisture);
+  
+  // Show connection status
+  if (isOfflineMode) {
+    lcd.print("OFF");
+  } else if (mqtt.connected()) {
+    lcd.print("ON");
+  } else {
+    lcd.print("NO");
   }
 } 

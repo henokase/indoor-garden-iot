@@ -1,0 +1,90 @@
+ESP32 Indoor Garden Controller - Setup Guide
+==========================================
+
+1. Install ESP32 Board Support
+----------------------------
+a. Open Arduino IDE
+b. Go to File > Preferences
+c. In "Additional Boards Manager URLs" add:
+   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+d. Click OK
+e. Go to Tools > Board > Boards Manager
+f. Search for "ESP32"
+g. Install "ESP32 by Espressif Systems"
+
+2. Required Libraries
+-------------------
+Go to Tools > Manage Libraries... (or Ctrl + Shift + I) and install:
+- PubSubClient (by Nick O'Leary)
+- ArduinoJson (by Benoit Blanchon)
+- DHT sensor library (by Adafruit)
+- Adafruit Unified Sensor (by Adafruit)
+- NTPClient (by Fabrice Weinberg)
+- LiquidCrystal I2C (by Frank de Brabander)
+
+3. Board Configuration
+--------------------
+Go to Tools and select:
+- Board: "ESP32 Dev Module"
+- Upload Speed: "115200"
+- CPU Frequency: "240MHz (WiFi/BT)"
+- Flash Frequency: "80MHz"
+- Flash Mode: "QIO"
+- Flash Size: "4MB (32Mb)"
+- Partition Scheme: "Default 4MB with spiffs"
+- Core Debug Level: "None"
+- PSRAM: "Disabled"
+
+4. Hardware Connections
+---------------------
+Connect your sensors and actuators to these ESP32 pins:
+
+Temperature Sensor (DHT22):
+- Data Pin: GPIO4
+- VCC: 3.3V
+- GND: GND
+
+Soil Moisture Sensor:
+- Analog Pin: GPIO36 (VP)
+- VCC: 3.3V
+- GND: GND
+
+LCD Display (I2C):
+- SDA: GPIO21
+- SCL: GPIO22
+- VCC: 5V
+- GND: GND
+
+Relays:
+- Fan: GPIO16
+- Pump: GPIO17
+- Light: GPIO18
+- Fertilizer: GPIO19
+- VCC: 5V
+- GND: GND
+
+5. Configuration Settings
+-----------------------
+Before uploading, update these values in the code:
+
+WiFi Settings:
+- // WiFi Configuration
+  const char* WIFI_SSID = "YOUR_WIFI_SSID";        // Your WiFi name
+  const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"; // Your WiFi password
+
+- // MQTT Configuration
+  const char* MQTT_SERVER = "d55d1972759041bf83d36d8d821741ab.s1.eu.hivemq.cloud";
+  const int MQTT_PORT = 8883;
+  const char* MQTT_USER = "indoor_garden_system";
+  const char* MQTT_PASSWORD = "Hero4433>test43";
+
+6. Verify your pin connections match the defined pins:
+   - // Pin Definitions
+     #define DHT_PIN D4              // DHT22 data pin
+     #define MOISTURE_SENSOR_PIN A0  // Soil moisture sensor
+     #define FAN_PIN D1             // Fan relay
+     #define PUMP_PIN D2            // Pump relay
+     #define LIGHT_PIN D3           // Light relay
+     #define FERTILIZER_PIN D5      // Fertilizer pump relay
+
+7. Then you can compile and upload the code to your ESP8266 using the Arduino IDE. The functionality will be exactly the same as with PlatformIO.
