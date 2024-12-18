@@ -40,7 +40,7 @@ export function NotificationProvider({ children }) {
     // Show toast notification
     toast(notification.message, {
       icon: '🔔',
-      duration: 4000,
+      duration: 3000,
       position: 'top-right',
     });
 

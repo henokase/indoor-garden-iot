@@ -4,13 +4,24 @@ import { env } from './env.js';
 
 const connectDB = async () => {
   const options = {
-    serverSelectionTimeoutMS: 5000,
-    autoIndex: true,
-    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 30000,
     socketTimeoutMS: 45000,
+    connectTimeoutMS: 30000,
+    heartbeatFrequencyMS: 2000,
+    family: 4,
+    maxPoolSize: 50,
+    minPoolSize: 10,
+    maxIdleTimeMS: 30000,
+    retryWrites: true,
+    retryReads: true,
+    writeConcern: {
+      w: 'majority',
+      wtimeout: 30000
+    }
   };
 
   try {
+    mongoose.set('debug', true); // Enable debug logging
     const connection = await mongoose.connect(env.MONGODB_URI, options);
     console.log(`MongoDB Connected: ${connection.connection.host}`);
 

@@ -35,10 +35,10 @@ export function useDeviceAlerts() {
     const temp = Number(sensorData.temperature);
     const { minTemperatureThreshold, maxTemperatureThreshold } = settings.preferences;
 
-    // Only create temperature alert if it's the first reading or the value has changed significantly (0.5 degrees)
+    // Only create temperature alert if it's the first reading or the value has changed significantly (0.7 degrees)
     const tempDiff = Math.abs((lastValues.current.temperature || temp) - temp);
     if (!isNaN(temp) && 
-        (lastValues.current.temperature === null || tempDiff > 0.5) && 
+        (lastValues.current.temperature === null || tempDiff > 0.7) && 
         (temp > maxTemperatureThreshold || temp < minTemperatureThreshold)) {
       const alert = {
         type: 'temperature',
@@ -69,10 +69,10 @@ export function useDeviceAlerts() {
     const moisture = Number(sensorData.moisture);
     const { minMoistureThreshold, maxMoistureThreshold } = settings.preferences;
 
-    // Only create moisture alert if it's the first reading or the value has changed significantly (2%)
+    // Only create moisture alert if it's the first reading or the value has changed significantly (5%)
     const moistureDiff = Math.abs((lastValues.current.moisture || moisture) - moisture);
     if (!isNaN(moisture) && 
-        (lastValues.current.moisture === null || moistureDiff > 2) && 
+        (lastValues.current.moisture === null || moistureDiff > 5) && 
         (moisture < minMoistureThreshold || moisture > maxMoistureThreshold)) {
       const alert = {
         type: 'moisture',
