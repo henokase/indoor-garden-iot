@@ -21,8 +21,7 @@ const app = express()
 // Middleware
 app.use(cors({
   origin: [
-    env.FRONTEND_URL || "http://localhost:3000",
-    "https://your-frontend-name.onrender.com"  // Replace with your actual Render frontend URL
+    env.FRONTEND_URL || "https://gardensense.onrender.com"
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
