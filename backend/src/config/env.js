@@ -9,7 +9,7 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT) || 3001,
   MONGODB_URI: process.env.MONGODB_URI,
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'https://gardensense.onrender.com/',
   
   MQTT: {
     HOST: process.env.MQTT_HOST,
