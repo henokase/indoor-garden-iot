@@ -20,8 +20,13 @@ const app = express()
 
 // Middleware
 app.use(cors({
-  origin: env.FRONTEND_URL || "http://localhost:3000",
-  credentials: true
+  origin: [
+    env.FRONTEND_URL || "http://localhost:3000",
+    "https://your-frontend-name.onrender.com"  // Replace with your actual Render frontend URL
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }))
 app.use(express.json())
 
