@@ -1,33 +1,35 @@
-import { asyncHandler } from '../utils/asyncHandler.js'
 import { sensorService } from '../services/sensorService.js'
-import { ApiError } from '../utils/ApiError.js'
 
 export const sensorController = {
-  getCurrentReadings: asyncHandler(async (req, res) => {
+  getCurrentReadings: async (req, res) => {
     const readings = await sensorService.getCurrentReadings()
-    if (!readings) {
-      throw new ApiError(404, 'Sensor reading not found')
-    }
     res.json(readings)
-  }),
+  },
 
-  getCurrentReading: asyncHandler(async (req, res) => {
+  getCurrentReading: async (req, res) => {
     const { type } = req.params
     const reading = await sensorService.getCurrentReading(type)
     res.json(reading)
-  }),
+  },
 
-  getHistoricalData: asyncHandler(async (req, res) => {
+  getHistoricalData: async (req, res) => {
     const { type } = req.params
-    const { timeRange = '24h' } = req.query
+    const { timeRange } = req.query
     const data = await sensorService.getHistoricalData(type, timeRange)
-    res.json(data)
-  }),
+    res.status(200).json(data)
+  },
 
-  getStats: asyncHandler(async (req, res) => {
+  getSensorReadingsByDateRange: async (req, res) => {
+    const { type } = req.params
+    const { startDate, endDate } = req.query
+    const readings = await sensorService.getSensorReadingsByDateRange(type, startDate, endDate)
+    res.status(200).json(readings)
+  },
+
+  getStats: async (req, res) => {
     const { type } = req.params
     const { startDate, endDate } = req.query
     const stats = await sensorService.getStats(type, startDate, endDate)
-    res.json(stats)
-  })
+    res.status(200).json(stats)
+  }
 }

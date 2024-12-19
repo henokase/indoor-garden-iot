@@ -1,5 +1,4 @@
 import { Device } from '../models/Device.js'
-import { ApiError } from '../utils/ApiError.js'
 import { resourceService } from './resourceService.js'
 import { emitDeviceUpdate } from '../config/socket.js'
 import { mqttService } from '../config/mqtt.js'
@@ -12,7 +11,7 @@ export const deviceService = {
   async getDevice(name) {
     const device = await Device.findOne({ name }).lean()
     if (!device) {
-      throw new ApiError(404, 'Device not found')
+      throw new Error('Device not found')
     }
     return device
   },
@@ -20,7 +19,7 @@ export const deviceService = {
   async toggleDevice(name, status) {
     const device = await Device.findOne({ name })
     if (!device) {
-      throw new ApiError(404, 'Device not found')
+      throw new Error('Device not found')
     }
 
     // Store the original state in case we need to rollback
@@ -96,7 +95,7 @@ export const deviceService = {
       // Notify clients about the revert via Socket.IO
       await emitDeviceUpdate(name, revertedDevice)
 
-      throw new ApiError(500, 'Failed to communicate with device. Changes reverted.')
+      throw new Error('Failed to communicate with device. Changes reverted.')
     }
 
     // If MQTT succeeded, notify clients via Socket.IO
@@ -110,11 +109,7 @@ export const deviceService = {
   async toggleAutoMode(name, enabled) {
     const device = await Device.findOne({ name })
     if (!device) {
-      throw new ApiError(404, 'Device not found')
-    }
-
-    if (enabled && device.name === "irrigation" && device.status === true) {
-      throw new ApiError(400, 'Turn off irrigation first')
+      throw new Error('Device not found')
     }
 
     device.autoMode = enabled
@@ -129,16 +124,16 @@ export const deviceService = {
   async updateDeviceStatus(deviceName, status) {
     const checkDevice = await Device.findOne({ name: deviceName })
     if (!checkDevice) {
-      throw new ApiError(404, 'Device not found')
+      throw new Error('Device not found')
     }
 
     if (!checkDevice.autoMode) {
-      throw new ApiError(400, 'Device is not in auto mode')
+      throw new Error('Device is not in auto mode')
     }
 
     // Find device by name instead of _id
     const device = await Device.findOneAndUpdate(
-      { name: deviceName }, // Query by name field
+      { name: deviceName },
       {
         $set: {
           status: status.status,
@@ -150,7 +145,7 @@ export const deviceService = {
     )
 
     if (!device) {
-      throw new ApiError(404, 'Device not found')
+      throw new Error('Device not found')
     }
 
     // Emit device update via Socket.IO

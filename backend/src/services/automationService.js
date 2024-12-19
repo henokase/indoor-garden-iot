@@ -1,8 +1,5 @@
 import { deviceService } from './deviceService.js'
 import { sensorService } from './sensorService.js'
-import { alertService } from './alertService.js'
-import { emitSystemStatus } from '../config/socket.js'
-import { Device } from '../models/Device.js'
 import { settingsService } from './settingsService.js'
 
 export class AutomationService {
@@ -16,24 +13,14 @@ export class AutomationService {
     if (this.isRunning) return
 
     this.isRunning = true
-    await emitSystemStatus({
-      automation: true,
-      timestamp: new Date()
-    })
 
     this.interval = setInterval(async () => {
       try {
         await this.checkConditionsAndAct()
       } catch (error) {
         console.error('Automation error:', error)
-        await alertService.createAlert({
-          type: 'automation_error',
-          message: 'Automation check failed',
-          severity: 'error',
-          details: error.message
-        })
       }
-    }, 60000) // Check every minute
+    }, 30000) // Check every 30 seconds
   }
 
   async stopAutomation() {
@@ -50,21 +37,6 @@ export class AutomationService {
   }
 
   async checkConditionsAndAct() {
-    const readings = await sensorService.getCurrentReadings()
-    const devices = await deviceService.getAllDevices()
-
-    // Emit current system status
-    await emitSystemStatus({
-      automation: true,
-      readings,
-      devices: devices.map(d => ({
-        name: d.name,
-        status: d.status,
-        autoMode: d.autoMode
-      })),
-      timestamp: new Date()
-    })
-
     const fan = deviceService.getDevice('fan')
     const irrigation = deviceService.getDevice('irrigation')
     const lighting = deviceService.getDevice('lighting')

@@ -8,7 +8,7 @@ export const authController = {
       const isAuthenticated = await authService.login(password)
       
       if (isAuthenticated) {
-        res.json({ message: 'Login successful' })
+        res.status(200).json({ message: 'Login successful' })
       } else {
         res.status(401).json({ message: 'Invalid password' })
       }

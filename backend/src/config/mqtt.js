@@ -1,8 +1,7 @@
 import mqtt from 'mqtt'
 import { env } from './env.js'
-import { emitSensorUpdate, emitDeviceUpdate } from './socket.js'
+import { emitSensorUpdate } from './socket.js'
 import { deviceService } from '../services/deviceService.js'
-import { SystemLog } from '../models/SystemLog.js'
 import { SensorReading } from '../models/Sensor.js'
 
 class MQTTService {
@@ -67,12 +66,7 @@ class MQTTService {
           this.lastPingTime = Date.now()
         }
       } catch (error) {
-        await SystemLog.create({
-          level: 'warning',
-          source: 'mqtt',
-          message: 'Heartbeat check failed',
-          details: { error: error.message }
-        })
+        console.error('Heartbeat check failed:', error)
       }
     }, 30000)
   }
@@ -90,12 +84,6 @@ class MQTTService {
 
     topics.forEach(topic => this.client.subscribe(topic))
     console.log('Subscribed to topics:', topics)
-
-    await SystemLog.create({
-      level: 'info',
-      source: 'mqtt',
-      message: 'Connected to MQTT broker'
-    })
   }
 
   async handleMessage(topic, message) {
@@ -152,24 +140,12 @@ class MQTTService {
       }
     } catch (error) {
       console.error('Error handling MQTT message:', error)
-      await SystemLog.create({
-        level: 'error',
-        source: 'mqtt',
-        message: 'Error handling message',
-        details: { error: error.message, topic }
-      })
     }
   }
 
   async handleError(error) {
     console.error('MQTT error:', error)
     this.connected = false
-    await SystemLog.create({
-      level: 'error',
-      source: 'mqtt',
-      message: 'MQTT client error',
-      details: { error: error.message }
-    })
   }
 
   async handleClose() {

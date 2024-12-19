@@ -1,36 +1,21 @@
 import express from 'express'
-import { sensorService } from '../services/sensorService.js'
-import { asyncHandler } from '../utils/asyncHandler.js'
+import { sensorController } from '../controllers/sensorController.js'
 
 const router = express.Router()
 
 // Get current readings for all sensors
-router.get('/current', asyncHandler(async (req, res) => {
-  const readings = await sensorService.getCurrentReadings()
-  res.json(readings)
-}))
+router.get('/current', sensorController.getCurrentReadings)
 
 // Get historical data for a specific sensor
-router.get('/:type/history', asyncHandler(async (req, res) => {
-  const { type } = req.params
-  const { timeRange } = req.query
-  const data = await sensorService.getHistoricalData(type, timeRange)
-  res.json(data)
-}))
+router.get('/:type/history', sensorController.getHistoricalData)
 
 // Get current reading for a specific sensor
-router.get('/:type/current', asyncHandler(async (req, res) => {
-  const { type } = req.params
-  const reading = await sensorService.getCurrentReading(type)
-  res.json(reading)
-}))
+router.get('/:type/current', sensorController.getCurrentReading)
 
 // Get sensor readings by date range
-router.get('/:type/readings', asyncHandler(async (req, res) => {
-  const { type } = req.params
-  const { startDate, endDate } = req.query
-  const readings = await sensorService.getSensorReadingsByDateRange(type, startDate, endDate)
-  res.json(readings)
-}))
+router.get('/:type/readings', sensorController.getSensorReadingsByDateRange)
+
+// Get sensor reading stats for a specific sensor
+router.get('/:type/stats', sensorController.getStats)
 
 export default router 

@@ -1,6 +1,5 @@
 import { SensorReading } from '../models/Sensor.js'
 import { emitSensorUpdate } from '../config/socket.js'
-// import { HistoricalRecord } from '../models/HistoricalRecord.js'
 
 export const sensorService = {
   async getCurrentReadings() {

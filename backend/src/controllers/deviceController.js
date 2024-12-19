@@ -1,4 +1,3 @@
-import { asyncHandler } from '../utils/asyncHandler.js'
 import { deviceService } from '../services/deviceService.js'
 
 export const deviceController = {
@@ -12,7 +11,7 @@ export const deviceController = {
     }
   },
 
-  toggleDevice: asyncHandler(async (req, res) => {
+  toggleDevice: async (req, res) => {
     try {
       const { name } = req.params
       const { status } = req.body
@@ -22,7 +21,7 @@ export const deviceController = {
       console.error('Toggle device error:', error)
       res.status(error.status || 500).json({ message: error.message })
     }
-  }),
+  },
 
   async toggleAutoMode(req, res) {
     try {

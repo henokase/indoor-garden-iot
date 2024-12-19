@@ -90,20 +90,6 @@ export const emitSystemAlert = async (alert) => {
   console.log(`System alert emitted to ${sockets.length} clients`)
 }
 
-export const emitSystemStatus = async (status) => {
-  if (!io) throw new Error('Socket.IO not initialized')
-  
-  const sockets = await io.fetchSockets()
-  const promises = sockets.map(socket => 
-    new Promise((resolve) => {
-      socket.emit('system:status', status, resolve)
-    })
-  )
-
-  await Promise.all(promises)
-  console.log(`System status emitted to ${sockets.length} clients`)
-}
-
 export const getIO = () => {
   if (!io) throw new Error('Socket.IO not initialized')
   return io

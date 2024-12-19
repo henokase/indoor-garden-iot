@@ -1,0 +1,229 @@
+Backend Code Structure and Interconnections Analysis
+=================================================
+
+1. Server Entry Point (server.js)
+--------------------------------
+Primary Role: Application bootstrap and initialization
+Key Dependencies:
+- express
+- cors
+- http
+- socket.io (via initializeSocket)
+- mqtt (via mqttService)
+
+Initializes:
+- MongoDB connection
+- MQTT connection
+- WebSocket server
+- Express middleware
+- Route handlers
+- Automation service
+
+2. Controllers Layer
+-------------------
+Location: src/controllers/
+Purpose: Handle HTTP requests and route business logic
+
+a. alertController.js
+   - Dependencies: alertService, emailService
+   - Handles: Alert creation, notification, and management
+   - Used by: alertRoutes.js
+   - Key features: Email notifications, alert status management
+
+b. authController.js
+   - Dependencies: authService
+   - Handles: User authentication
+   - Used by: authRoutes.js
+   - Key features: Password-based authentication
+
+c. deviceController.js
+   - Dependencies: deviceService
+   - Handles: Device state management
+   - Used by: deviceRoutes.js
+   - Key features: Device toggling, auto mode management
+
+d. resourceController.js
+   - Dependencies: resourceService
+   - Handles: Resource usage tracking and statistics
+   - Used by: resourceRoutes.js
+   - Key features: Usage tracking, date range queries
+
+e. sensorController.js
+   - Dependencies: sensorService
+   - Handles: Sensor data management
+   - Used by: sensorRoutes.js
+   - Key features: Real-time readings, historical data
+
+f. settingsController.js
+   - Dependencies: settingsService
+   - Handles: System settings management
+   - Used by: settingsRoutes.js
+   - Key features: Preferences, notifications settings
+
+g. systemController.js
+   - Dependencies: systemService
+   - Handles: System health and monitoring
+   - Used by: systemRoutes.js
+   - Key features: Health checks, system logs
+
+3. Models Layer
+--------------
+Location: src/models/
+Purpose: Database schema definitions
+
+a. Alert.js
+   Schema fields:
+   - timestamp
+   - type (enum)
+   - value
+   - threshold
+   - status
+   Used by: alertService, automationService
+
+b. Device.js
+   Schema fields:
+   - name (enum)
+   - status
+   - autoMode
+   - powerRating
+   - waterRate
+   Used by: deviceService, automationService
+
+c. ResourceUsage.js
+   Schema fields:
+   - date
+   - energy (total + breakdown)
+   - water (total + breakdown)
+   Used by: resourceService
+
+d. Sensor.js
+   Schema fields:
+   - type
+   - value
+   - unit
+   - timestamp
+   Used by: sensorService, automationService
+
+e. Settings.js
+   Schema fields:
+   - password
+   - preferences
+   - notifications
+   Used by: settingsService, automationService
+
+4. Services Layer
+----------------
+Location: src/services/
+Purpose: Business logic implementation
+
+a. automationService.js
+   - Core automation logic
+   - Depends on: deviceService, sensorService, settingsService
+   - Features: Automated device control based on sensor readings
+
+b. deviceService.js
+   - Device state management
+   - Depends on: Device model, mqttService
+   - Features: Device control, state persistence
+
+c. sensorService.js
+   - Sensor data management
+   - Depends on: Sensor model, mqttService
+   - Features: Data collection, analysis
+
+d. resourceService.js
+   - Resource tracking
+   - Depends on: ResourceUsage model
+   - Features: Usage statistics, reporting
+
+5. Middleware Layer
+------------------
+Location: src/middleware/
+Purpose: Request processing and error handling
+
+a. errorHandler.js
+   - Global error handling
+   - Logs errors to SystemLog
+   - Used by: server.js
+
+b. logger.js
+   - Request logging
+   - Performance monitoring
+   - Used by: server.js
+
+c. rateLimiter.js
+   - API rate limiting
+   - Used by: routes requiring protection
+
+d. validateRequest.js
+   - Request validation
+   - Used by: routes requiring data validation
+
+6. Configuration
+---------------
+Location: src/config/
+Purpose: System configuration and connections
+
+Key files:
+- database.js: MongoDB connection
+- mqtt.js: MQTT broker connection
+- socket.js: WebSocket setup
+- env.js: Environment variables
+
+7. Data Flow
+-----------
+MQTT → sensorService → automationService → deviceService → MQTT
+HTTP → controllers → services → models → MongoDB
+WebSocket → socket.js → clients
+
+8. Key Integration Points
+------------------------
+- MQTT broker: Device communication
+- MongoDB: Data persistence
+- WebSocket: Real-time updates
+- HTTP API: External interface
+
+9. Error Handling Strategy
+-------------------------
+- Controller level: Try-catch blocks
+- Global: errorHandler middleware
+- Service level: Custom ApiError class
+- Logging: SystemLog model
+
+10. Security Measures
+-------------------
+- Rate limiting
+- Request validation
+- Error sanitization
+- CORS configuration
+- Authentication checks
+
+11. Unnecessary or Redundant Files
+--------------------------------
+a. Duplicate Authentication:
+   - bcrypt and bcryptjs are both installed in package.json
+   - Only bcryptjs is needed for password hashing
+
+b. Unused Scripts:
+   - generateDemoData.js: Can be merged with initializeSensorData.js
+   - deviceSimulator.js: Development testing only, should be moved to a test folder
+
+c. Redundant Configuration:
+   - Multiple environment configurations that could be consolidated
+   - Separate .env.example could be combined with documentation
+
+d. Overlapping Functionality:
+   - insertTestData.js overlaps with generateDemoData.js
+   - initializeSettings.js and initializeDevices.js could be combined into a single initialization script
+
+e. Development Files That Should Be Ignored:
+   - test.jsx: Appears to be a temporary test file
+   - package-lock.json: Should be in .gitignore if not using npm
+   - scripts/package.json: Unnecessary separate package.json in scripts directory
+
+Recommendations:
+1. Consolidate initialization scripts into a single 'init.js'
+2. Move test and simulation files to a dedicated '/test' directory
+3. Remove duplicate dependencies from package.json
+4. Clean up redundant configuration files
+5. Update .gitignore to exclude development-only files

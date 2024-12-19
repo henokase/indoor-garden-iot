@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { env } from './env.js';
-// import { SystemLog } from '../models/SystemLog.js';
 
 const connectDB = async () => {
   const options = {
