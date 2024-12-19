@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { PreferencesCard } from "../components/settings/PreferencesCard";
-// import { AlertsCard } from "../components/settings/AlertsCard";
 import { NotificationsCard } from "../components/settings/NotificationsCard";
 import { PasswordCard } from "../components/settings/PasswordCard";
 import { useFetchSettings, useUpdateSettings } from "../hooks/useSettings";
