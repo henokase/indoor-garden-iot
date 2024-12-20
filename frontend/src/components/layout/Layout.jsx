@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutGrid,
@@ -7,7 +7,6 @@ import {
   Settings as SettingsIcon,
   Menu,
   X,
-  LogOut,
   Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,7 +14,6 @@ import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import { DarkModeToggle } from "../ui/DarkModeToggle";
 import { useDeviceAlerts } from '../../hooks/useDeviceAlerts';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 import logo from "../../assets/logo.png";
@@ -26,6 +24,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isLoactionLogin = location.pathname === "/login";
+  const [scrolled, setScrolled] = useState(false);
 
   const { notifications } = useNotifications();
 
@@ -38,6 +37,16 @@ export default function Layout({ children }) {
       });
     }
   }, [notifications]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 15);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useDeviceAlerts();
 
@@ -109,7 +118,8 @@ export default function Layout({ children }) {
       {!isLoactionLogin && (
         <div className="md:hidden">
           {/* Mobile Header */}
-          <div className="fixed top-0 left-0 right-0 h-16 dark:bg-gray-800 bg-white border-b border-gray-200 dark:border-gray-700 px-4 flex items-center justify-between z-50">
+          <div className={`fixed top-0 left-0 right-0 transition-all duration-150 h-16 px-4 flex items-center justify-between z-50
+            ${scrolled ? "shadow-xl inset-0 bg-black/20 backdrop-blur-md" : "dark:bg-gray-800 bg-white border-b border-gray-200 dark:border-gray-700"}`}>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
