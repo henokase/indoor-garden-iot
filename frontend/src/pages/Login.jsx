@@ -13,14 +13,21 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (!password) {
+            toast.error("Please enter a password");
+            return;
+        }
 
+        const toastId = toast.loading("Logging in...");
         try {
             const { data } = await loginMutation(password);
             localStorage.setItem("isAuthenticated", "true");
+            toast.success("Welcome to GardenSense!", { id: toastId });
             navigate("/");
-            toast.success("Welcome to GardenSense!");
         } catch (error) {
-            toast.error(error.response?.data?.message || "Invalid password");
+            toast.error(error.response?.data?.message || "Invalid password", { id: toastId });
+            setPassword(""); // Clear password on error
         }
     };
 
@@ -31,14 +38,19 @@ export default function Login() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md bg-green-100 dark:bg-gray-800 rounded-2xl shadow-xl p-8"
             >
-                <div className="flex justify-center items-center mb-8">
+                <motion.div 
+                    className="flex justify-center items-center mb-8"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
                     <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-full">
-                        <img src={logo} className="h-14" />
+                        <img src={logo} className="h-14" alt="GardenSense Logo" />
                     </div>
                     <h1 className="text-2xl ml-3 font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text">
                         GardenSense
                     </h1>
-                </div>
+                </motion.div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
@@ -50,28 +62,34 @@ export default function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 rounded-lg border dark:border-gray-600 
-                focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400
-                bg-transparent dark:bg-gray-700 dark:text-white"
+                                focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400
+                                bg-transparent dark:bg-gray-700 dark:text-white
+                                disabled:opacity-50 disabled:cursor-not-allowed"
                             placeholder="Enter your password"
                             required
+                            disabled={isLoading}
+                            autoFocus
                         />
                     </div>
 
-                    {isLoading ? (
-                        <div className="flex justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-                        </div>
-                    ) : (
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="submit"
-                            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 
-              rounded-lg font-medium transition-colors"
-                        >
-                            Enter Garden
-                        </motion.button>
-                    )}
+                    <motion.button
+                        whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                        whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                        type="submit"
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 
+                            rounded-lg font-medium transition-colors disabled:opacity-50 
+                            disabled:cursor-not-allowed disabled:hover:bg-green-500"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                <span>Entering Garden...</span>
+                            </div>
+                        ) : (
+                            "Enter Garden"
+                        )}
+                    </motion.button>
                 </form>
             </motion.div>
         </div>

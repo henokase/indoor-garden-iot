@@ -36,7 +36,8 @@ export function PasswordCard() {
     };
 
     return (
-        <motion.div
+        <motion.form
+            onSubmit={handleSubmit}
             className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,8 +98,7 @@ export function PasswordCard() {
                     />
                 </div>
                 <motion.button
-                    onClick={handleSubmit}
-                    type="button"
+                    type="submit"
                     className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 
                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: 1.02 }}
@@ -110,6 +110,6 @@ export function PasswordCard() {
                         : "Update Password"}
                 </motion.button>
             </div>
-        </motion.div>
+        </motion.form>
     );
 }

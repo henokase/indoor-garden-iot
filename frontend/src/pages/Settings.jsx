@@ -44,6 +44,7 @@ export default function Settings() {
             const keys = name.split('.');
             let current = newData;
 
+            // Navigate to the correct nested object
             for (let i = 0; i < keys.length - 1; i++) {
                 if (!current[keys[i]]) {
                     current[keys[i]] = {};
@@ -51,6 +52,7 @@ export default function Settings() {
                 current = current[keys[i]];
             }
 
+            // Set the value
             current[keys[keys.length - 1]] = type === 'checkbox' ? checked : value;
             return newData;
         });
@@ -58,6 +60,8 @@ export default function Settings() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate email if enabled
         if (formData.notifications.email.enabled && !formData.notifications.email.address) {
             toast.error("Email address is required when email notifications are enabled");
             return;
@@ -69,19 +73,27 @@ export default function Settings() {
                 return;
             }
         }
+
+        const toastId = toast.loading("Saving settings...");
         try {
-            await updateSettingsMutation.mutateAsync(formData);
-            toast.success("Settings updated successfully");
+            // Ensure we're sending the complete data structure
+            const dataToUpdate = {
+                preferences: formData.preferences,
+                notifications: formData.notifications
+            };
+            await updateSettingsMutation.mutateAsync(dataToUpdate);
+            toast.success("Settings updated successfully", { id: toastId });
         } catch (error) {
             console.error('Settings update error:', error);
-            toast.error(error.response?.data?.message || "Failed to update settings");
+            toast.error(error.response?.data?.message || "Failed to update settings", { id: toastId });
         }
     };
 
-    if (isLoading || isFetching || !formData) {
+    if (isLoading) {
         return (
-            <div className="p-6 flex justify-center items-center">
+            <div className="p-6 flex flex-col items-center justify-center gap-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <p className="text-gray-500">Loading settings...</p>
             </div>
         );
     }
@@ -99,24 +111,25 @@ export default function Settings() {
 
             <motion.form
                 onSubmit={handleSubmit}
-                className="space-y-6"
+                className="space-y-6 mb-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
+                {isFetching && (
+                    <div className="fixed top-4 right-4">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-500"></div>
+                    </div>
+                )}
+                
                 <PreferencesCard
                     formData={formData.preferences}
                     onChange={handleChange}
                 />
-                {/* <AlertsCard
-                    formData={formData.alerts}
-                    onChange={handleChange}
-                /> */}
                 <NotificationsCard
                     formData={formData.notifications}
                     onChange={handleChange}
                 />
-                <PasswordCard />
 
                 <motion.button
                     type="submit"
@@ -124,11 +137,19 @@ export default function Settings() {
                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    disabled={updateSettingsMutation.isLoading}
+                    disabled={updateSettingsMutation.isPending || isFetching}
                 >
-                    {updateSettingsMutation.isLoading ? "Saving..." : "Save Settings"}
+                    {updateSettingsMutation.isPending ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Saving...</span>
+                        </div>
+                    ) : (
+                        "Save Settings"
+                    )}
                 </motion.button>
             </motion.form>
+            <PasswordCard />
         </div>
     );
 }

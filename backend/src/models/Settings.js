@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const settingsSchema = new mongoose.Schema({
-  password: { type: String },
+  password: { type: String, default: '' },
   preferences: {
     temperatureUnit: { type: String, default: 'C' },
     minTemperatureThreshold: { type: Number, default: 15 },
@@ -18,10 +18,14 @@ const settingsSchema = new mongoose.Schema({
   notifications: {
     email: {
       enabled: { type: Boolean, default: false },
-      address: String
+      address: { type: String, default: '' }
     },
-    push: { type: Boolean, default: false },
+    push: { type: Boolean, default: false }
   }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 })
 
 export const Settings = mongoose.model('Settings', settingsSchema) 

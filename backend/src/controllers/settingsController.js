@@ -4,8 +4,7 @@ export const settingsController = {
   async getSettings(req, res) {
     try {
       const settings = await settingsService.getSettings()
-      const { password, ...settingsWithoutPassword } = settings
-      res.status(200).json(settingsWithoutPassword)
+      res.status(200).json(settings)
     } catch (error) {
       console.error('Get settings error:', error)
       res.status(500).json({ message: 'Server error' })
@@ -15,8 +14,7 @@ export const settingsController = {
   async updateSettings(req, res) {
     try {
       const settings = await settingsService.updateSettings(req.body)
-      const { password, ...settingsWithoutPassword } = settings
-      res.status(200).json(settingsWithoutPassword)
+      res.status(200).json(settings)
     } catch (error) {
       console.error('Update settings error:', error)
       res.status(500).json({ message: 'Server error' })

@@ -7,16 +7,47 @@ export const settingsService = {
     if (!settings) {
       settings = await Settings.create({})
     }
-    return settings
+    // Convert to plain object to ensure all defaults are included
+    return settings.toObject()
   },
 
   async updateSettings(settingsData) {
+    // First get the current settings
+    const currentSettings = await Settings.findOne().select('-password')
+    if (!currentSettings) {
+      const newSettings = await Settings.create(settingsData)
+      return newSettings.toObject()
+    }
+
+    // Convert current settings to plain object
+    const currentSettingsObj = currentSettings.toObject()
+
+    // Merge the updates with current settings
+    const updatedSettings = {
+      preferences: {
+        ...currentSettingsObj.preferences,
+        ...(settingsData.preferences || {})
+      },
+      notifications: {
+        email: {
+          ...currentSettingsObj.notifications.email,
+          ...(settingsData.notifications?.email || {})
+        },
+        push: settingsData.notifications?.push !== undefined 
+          ? settingsData.notifications.push 
+          : currentSettingsObj.notifications.push
+      }
+    }
+
+    // Update with merged data
     const settings = await Settings.findOneAndUpdate(
       {},
-      { $set: settingsData },
+      { $set: updatedSettings },
       { new: true, upsert: true }
     ).select('-password')
-    return settings
+    
+    // Convert to plain object before returning
+    return settings.toObject()
   },
 
   async updatePassword({ currentPassword, newPassword }) {

@@ -13,6 +13,7 @@ export function DeviceCard({ device }) {
                 name: device.name,
                 status: checked
             })
+            toast.success(`${device.label} ${checked ? 'turned on' : 'turned off'}`)
         } catch (error) {
             console.error('Toggle device error:', error)
             toast.error(`Failed to toggle ${device.label}`)
@@ -25,6 +26,7 @@ export function DeviceCard({ device }) {
                 name: device.name,
                 enabled: checked
             })
+            toast.success(`Auto mode ${checked ? 'enabled' : 'disabled'} for ${device.label}`)
         } catch (error) {
             console.error('Toggle auto mode error:', error)
             if (error.response?.status === 400) {
@@ -52,19 +54,31 @@ export function DeviceCard({ device }) {
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-500 dark:text-gray-400">Auto</span>
-                        <Switch
-                            checked={device.autoMode}
-                            onCheckedChange={handleAutoModeToggle}
-                            disabled={isTogglingAuto}
-                        />
+                        {isTogglingAuto ? (
+                            <div className="w-10 h-6 flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                            </div>
+                        ) : (
+                            <Switch
+                                checked={device.autoMode}
+                                onCheckedChange={handleAutoModeToggle}
+                                disabled={isTogglingAuto}
+                            />
+                        )}
                     </div>
                     <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-500 dark:text-gray-400">Power</span>
-                        <Switch
-                            checked={device.status}
-                            onCheckedChange={handleToggle}
-                            disabled={isToggling || device.autoMode}
-                        />
+                        {isToggling ? (
+                            <div className="w-10 h-6 flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                            </div>
+                        ) : (
+                            <Switch
+                                checked={device.status}
+                                onCheckedChange={handleToggle}
+                                disabled={isToggling || device.autoMode}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
