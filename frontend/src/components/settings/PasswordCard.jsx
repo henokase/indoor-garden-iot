@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useUpdatePassword } from "../../hooks/useSettings";
 import { toast } from "react-hot-toast";
 
-export function PasswordCard() {
+export function PasswordCard({ isLoading }) {
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
         newPassword: "",
@@ -35,6 +35,10 @@ export function PasswordCard() {
         }
     };
 
+    const SkeletonInput = () => (
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+    );
+
     return (
         <motion.form
             onSubmit={handleSubmit}
@@ -53,49 +57,61 @@ export function PasswordCard() {
                     <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
                         Current Password
                     </label>
-                    <input
-                        type="password"
-                        value={passwordData.currentPassword}
-                        onChange={(e) =>
-                            setPasswordData((prev) => ({
-                                ...prev,
-                                currentPassword: e.target.value,
-                            }))
-                        }
-                        className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
-                    />
+                    {isLoading ? (
+                        <SkeletonInput />
+                    ) : (
+                        <input
+                            type="password"
+                            value={passwordData.currentPassword}
+                            onChange={(e) =>
+                                setPasswordData((prev) => ({
+                                    ...prev,
+                                    currentPassword: e.target.value,
+                                }))
+                            }
+                            className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
+                        />
+                    )}
                 </div>
                 <div>
                     <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
                         New Password
                     </label>
-                    <input
-                        type="password"
-                        value={passwordData.newPassword}
-                        onChange={(e) =>
-                            setPasswordData((prev) => ({
-                                ...prev,
-                                newPassword: e.target.value,
-                            }))
-                        }
-                        className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
-                    />
+                    {isLoading ? (
+                        <SkeletonInput />
+                    ) : (
+                        <input
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={(e) =>
+                                setPasswordData((prev) => ({
+                                    ...prev,
+                                    newPassword: e.target.value,
+                                }))
+                            }
+                            className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
+                        />
+                    )}
                 </div>
                 <div>
                     <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
                         Confirm New Password
                     </label>
-                    <input
-                        type="password"
-                        value={passwordData.confirmPassword}
-                        onChange={(e) =>
-                            setPasswordData((prev) => ({
-                                ...prev,
-                                confirmPassword: e.target.value,
-                            }))
-                        }
-                        className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
-                    />
+                    {isLoading ? (
+                        <SkeletonInput />
+                    ) : (
+                        <input
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) =>
+                                setPasswordData((prev) => ({
+                                    ...prev,
+                                    confirmPassword: e.target.value,
+                                }))
+                            }
+                            className="input input-bordered input-success w-full bg-transparent dark:bg-gray-800"
+                        />
+                    )}
                 </div>
                 <motion.button
                     type="submit"

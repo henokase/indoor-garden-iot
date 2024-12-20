@@ -53,7 +53,7 @@ export function NotificationDropdown() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+              className="absolute -right-10 sm:right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
             >
               {/* Header */}
               <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center">

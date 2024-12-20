@@ -59,7 +59,6 @@ export default function ControlPanel() {
     }
 
     if (error) {
-        toast.error(error.message || "Failed to load devices");
         return (
             <div className="p-6 text-center text-red-500">
                 Failed to load devices. Please try again later.
@@ -68,9 +67,9 @@ export default function ControlPanel() {
     }
 
     return (
-        <div className="p-4 md:p-6 max-w-7xl mx-auto">
+        <div className="p-1 sm:p-4 md:p-6 max-w-7xl mx-auto">
             <motion.h1
-                className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
+                className="text-2xl max-sm:pt-3 font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}

@@ -23,9 +23,9 @@ export default function Reports() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="p-1 sm:p-4 md:p-6 max-w-7xl mx-auto">
       <motion.h1 
-        className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
+        className="text-2xl p-3 pb-0 sm:p-0 font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
         {...fadeIn}
       >
         Reports & Analysis
@@ -58,16 +58,16 @@ export default function Reports() {
 
       {/* Chart Type Selector */}
       <motion.div 
-        className="flex max-md:flex-col justify-between gap-4 mb-6 bg-green-50 rounded-lg shadow-sm p-6 dark:bg-gray-800"
+        className="flex max-md:flex-col justify-between items-center gap-4 mb-6 bg-green-50 rounded-lg shadow-sm p-6 dark:bg-gray-800"
         {...fadeIn}
       >
         <DateRangePicker dateRange={dateRange} onChange={setDateRange} />
-        <div className='flex gap-10'>
+        <div className='flex gap-10 max-sm:text-sm'>
         <button
-          className={`px-4 py-2 rounded-lg ${
+          className={`px-4 py-4 rounded-lg ${
             selectedChartType === 'resources'
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+              ? 'bg-gray-950 text-white'
+              : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-md shadow-black'
           }`}
           onClick={() => setSelectedChartType('resources')}
         >
@@ -76,8 +76,8 @@ export default function Reports() {
         <button
           className={`px-4 py-2 rounded-lg ${
             selectedChartType === 'sensors'
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+              ? 'bg-gray-950 text-white'
+              : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-md shadow-black'
           }`}
           onClick={() => setSelectedChartType('sensors')}
         >
@@ -88,7 +88,7 @@ export default function Reports() {
 
       {/* Charts */}
       <motion.div
-        className="bg-green-50 rounded-lg shadow-sm p-6 dark:bg-gray-800"
+        className="bg-green-50 rounded-lg shadow-sm sm:p-6 dark:bg-gray-800"
         {...fadeIn}
       >
         {selectedChartType === 'resources' ? (

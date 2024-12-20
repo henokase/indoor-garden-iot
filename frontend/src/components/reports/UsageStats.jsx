@@ -27,7 +27,7 @@ export function UsageStats({ title, icon, color, stats, unit, isLoading }) {
           <h2 className="text-lg font-medium">{title}</h2>
         </div>
         <div className="text-gray-500 text-center py-4">
-          No data available for the selected period
+          No data available
         </div>
       </div>
     )

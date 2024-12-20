@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { useSocket } from './useSocket';
-import { toast } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 
 export function useDeviceStatus() {
@@ -48,12 +47,12 @@ export function useDeviceStatus() {
             updatedData[deviceIndex] = { 
               ...updatedData[deviceIndex], 
               ...data,
-              mode: data.autoMode ? 'auto' : 'manual' // Add mode property
+              mode: data.autoMode ? 'auto' : 'manual'
             }
           } else {
             updatedData.push({
               ...data,
-              mode: data.autoMode ? 'auto' : 'manual' // Add mode property
+              mode: data.autoMode ? 'auto' : 'manual'
             })
           }
           
@@ -108,7 +107,6 @@ export function useToggleDevice() {
     },
     onError: (error) => {
       console.error('Toggle device error:', error)
-      toast.error(error.response?.data?.message || 'Failed to toggle device')
     }
   })
 }
@@ -129,7 +127,6 @@ export function useToggleAutoMode() {
     },
     onError: (error) => {
       console.error('Toggle auto mode error:', error)
-      toast.error(error.response?.data?.message || 'Failed to toggle auto mode')
     }
   })
 }

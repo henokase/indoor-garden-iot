@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
+import { DarkModeToggle } from "../ui/DarkModeToggle";
 import { useDeviceAlerts } from '../../hooks/useDeviceAlerts';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useEffect } from 'react';
@@ -116,15 +117,15 @@ export default function Layout({ children }) {
               >
                 <Menu className="w-6 h-6 text-gray-500 dark:text-gray-400" />
               </button>
-              <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-full">
-                <img src={logo} className="h-10" />
-              </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text">
                 GardenSense
               </span>
             </div>
             <div className="absolute top-4 right-4">
-              <NotificationDropdown />
+              <div className="flex items-center gap-2">
+                <NotificationDropdown />
+                <DarkModeToggle />
+              </div>
             </div>
           </div>
 
@@ -249,10 +250,13 @@ export default function Layout({ children }) {
           isLoactionLogin ? "w-full" : "flex-1 md:pl-64 max-md:pt-16"
         }
       >
-        <main className="min-h-screen bg-green-100 dark:bg-gray-900 dark:text-gray-100 relative">
+        <main className="min-h-[calc(100dvh-64px)] bg-green-100 dark:bg-gray-900 dark:text-gray-100 relative">
           {!isLoactionLogin && (
             <div className="absolute top-4 right-4 max-md:hidden">
-              <NotificationDropdown />
+              <div className="flex items-center gap-2">
+                <NotificationDropdown />
+                <DarkModeToggle />
+              </div>
             </div>
           )}
           {children}

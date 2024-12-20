@@ -34,7 +34,7 @@ export function UsageChart({ dateRange }) {
 
   return (
     <div>
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-4 mb-4 max-sm:p-6">
         {metrics.map(metric => (
           <button
             key={metric.id}

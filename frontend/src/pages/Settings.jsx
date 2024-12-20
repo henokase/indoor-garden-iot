@@ -18,7 +18,7 @@ export default function Settings() {
         }
     });
 
-    const { data: settings, isLoading, isFetching } = useFetchSettings();
+    const { data: settings, isLoading, isFetching, error: fetchingError } = useFetchSettings();
     const updateSettingsMutation = useUpdateSettings();
 
     useEffect(() => {
@@ -44,7 +44,6 @@ export default function Settings() {
             const keys = name.split('.');
             let current = newData;
 
-            // Navigate to the correct nested object
             for (let i = 0; i < keys.length - 1; i++) {
                 if (!current[keys[i]]) {
                     current[keys[i]] = {};
@@ -52,7 +51,6 @@ export default function Settings() {
                 current = current[keys[i]];
             }
 
-            // Set the value
             current[keys[keys.length - 1]] = type === 'checkbox' ? checked : value;
             return newData;
         });
@@ -61,7 +59,6 @@ export default function Settings() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Validate email if enabled
         if (formData.notifications.email.enabled && !formData.notifications.email.address) {
             toast.error("Email address is required when email notifications are enabled");
             return;
@@ -76,7 +73,6 @@ export default function Settings() {
 
         const toastId = toast.loading("Saving settings...");
         try {
-            // Ensure we're sending the complete data structure
             const dataToUpdate = {
                 preferences: formData.preferences,
                 notifications: formData.notifications
@@ -89,19 +85,26 @@ export default function Settings() {
         }
     };
 
-    if (isLoading) {
+    if (fetchingError) {
         return (
-            <div className="p-6 flex flex-col items-center justify-center gap-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-                <p className="text-gray-500">Loading settings...</p>
+            <div className="p-6 text-center text-red-500">
+                Failed to load. Please try again later.
             </div>
-        );
+        )
     }
 
+    // if (isLoading || isFetching) {
+    //     return (
+    //         <div className="p-6 flex flex-col items-center justify-center gap-4">
+    //             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+    //         </div>
+    //     );
+    // }
+
     return (
-        <div className="p-6 max-w-3xl mx-auto">
+        <div className="p-1 sm:p-6 max-w-3xl sm:mx-auto">
             <motion.h1
-                className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
+                className="text-2xl p-3 pb-0 sm:p-0 font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -116,19 +119,15 @@ export default function Settings() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
-                {isFetching && (
-                    <div className="fixed top-4 right-4">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-500"></div>
-                    </div>
-                )}
-                
                 <PreferencesCard
                     formData={formData.preferences}
                     onChange={handleChange}
+                    isLoading={isLoading || isFetching}
                 />
                 <NotificationsCard
                     formData={formData.notifications}
                     onChange={handleChange}
+                    isLoading={isLoading || isFetching}
                 />
 
                 <motion.button
@@ -149,7 +148,9 @@ export default function Settings() {
                     )}
                 </motion.button>
             </motion.form>
-            <PasswordCard />
+            <PasswordCard 
+                isLoading={isLoading || isFetching}
+            />
         </div>
     );
 }

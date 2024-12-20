@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     LineChart,
     Line,
@@ -19,24 +19,17 @@ export function SensorHistoryChart({ dateRange }) {
     const {
         data: temperatureData,
         isLoading: temperatureLoading,
-        error: temperatureError,
         message: temperatureMessage,
     } = useSensorReadings("temperature", dateRange);
 
     const {
         data: moistureData,
         isLoading: moistureLoading,
-        error: moistureError,
         message: moistureMessage,
     } = useSensorReadings("moisture", dateRange);
 
     const metrics = [
-        {
-            id: "temperature",
-            label: "Temperature",
-            color: "#f97316",
-            unit: "°C",
-        },
+        { id: "temperature", label: "Temperature", color: "#f97316", unit: "°C" },
         { id: "moisture", label: "Moisture", color: "#3b82f6", unit: "%" },
     ];
 
@@ -62,16 +55,8 @@ export function SensorHistoryChart({ dateRange }) {
 
     if (temperatureLoading || moistureLoading) {
         return (
-            <div className="p-6 flex justify-center items-center">
+            <div className="h-[400px] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-            </div>
-        );
-    }
-
-    if (temperatureError || moistureError) {
-        return (
-            <div className="text-center py-8 text-red-500">
-                {temperatureError || moistureError}
             </div>
         );
     }
@@ -80,14 +65,6 @@ export function SensorHistoryChart({ dateRange }) {
         return (
             <div className="text-center py-8 text-gray-500">
                 {temperatureMessage || moistureMessage}
-            </div>
-        );
-    }
-
-    if (!formattedData.length) {
-        return (
-            <div className="text-center py-8 text-gray-500">
-                No data available for the selected date range
             </div>
         );
     }
@@ -117,7 +94,7 @@ export function SensorHistoryChart({ dateRange }) {
 
     return (
         <div>
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 max-sm:p-6">
                 {metrics.map((metric) => (
                     <button
                         key={metric.id}
@@ -131,9 +108,9 @@ export function SensorHistoryChart({ dateRange }) {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
                             ${selectedMetrics.includes(metric.id)
                                 ? metric.id === "temperature"
-                                    ? "bg-orange-50 text-orange-600"
-                                    : "bg-blue-50 text-blue-600"
-                                : "hover:bg-gray-50"
+                                    ? "bg-orange-200 text-orange-900"
+                                    : "bg-blue-200 text-blue-900"
+                                : "hover:bg-gray-50 dark:hover:bg-gray-700"
                             }`}
                     >
                         {metric.label}

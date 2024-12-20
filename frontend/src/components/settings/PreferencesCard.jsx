@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 // Utility functions for temperature conversion
 const celsiusToFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const fahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
-
-export function PreferencesCard({ formData = {}, onChange }) {
+ 
+export function PreferencesCard({ formData = {}, onChange, isLoading = false }) {
   // Ensure formData has default values
   const preferences = {
     temperatureUnit: formData.temperatureUnit || 'C',
@@ -81,6 +81,14 @@ export function PreferencesCard({ formData = {}, onChange }) {
 
   const tempRange = getTempRange();
 
+  const SkeletonInput = () => (
+    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+  );
+
+  const SkeletonSelect = () => (
+    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+  );
+
   return (
     <motion.div
       className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-6"
@@ -99,15 +107,19 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Temperature Unit
           </label>
-          <select
-            name="preferences.temperatureUnit"
-            value={preferences.temperatureUnit}
-            onChange={onChange}
+          {isLoading ? (
+            <SkeletonSelect />
+          ) : (
+            <select
+              name="preferences.temperatureUnit"
+              value={preferences.temperatureUnit}
+              onChange={onChange}
             className="w-full bg-transparent text-black dark:text-white dark:bg-gray-800 select select-success"
-          >
-            <option value="C">Celsius (°C)</option>
-            <option value="F">Fahrenheit (°F)</option>
-          </select>
+            >
+              <option value="C">Celsius (°C)</option>
+              <option value="F">Fahrenheit (°F)</option>
+            </select>
+          )}
         </div>
 
         {/* Min Temperature Threshold */}
@@ -115,19 +127,25 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Min Temperature Threshold
           </label>
-          <input
-            type="range"
-            name="preferences.minTemperatureThreshold"
-            value={displayValues.minTemp}
-            onChange={handleTempChange}
-            min={tempRange.min}
-            max={tempRange.max}
-            step="1"
+          {isLoading ? (
+            <SkeletonInput />
+          ) : (
+            <input
+              type="range"
+              name="preferences.minTemperatureThreshold"
+              value={displayValues.minTemp}
+              onChange={handleTempChange}
+              min={tempRange.min}
+              max={tempRange.max}
+              step="1"
             className="w-full range range-success range-sm"
-          />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {`${Math.round(displayValues.minTemp)}°${preferences.temperatureUnit}`}
-          </span>
+            />
+          )}
+          {!isLoading && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {`${Math.round(displayValues.minTemp)}°${preferences.temperatureUnit}`}
+            </span>
+          )}
         </div>
 
         {/* Max Temperature Threshold */}
@@ -135,19 +153,25 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Max Temperature Threshold
           </label>
-          <input
-            type="range"
-            name="preferences.maxTemperatureThreshold"
-            value={displayValues.maxTemp}
-            onChange={handleTempChange}
-            min={tempRange.min}
-            max={tempRange.max}
-            step="1"
+          {isLoading ? (
+            <SkeletonInput />
+          ) : (
+            <input
+              type="range"
+              name="preferences.maxTemperatureThreshold"
+              value={displayValues.maxTemp}
+              onChange={handleTempChange}
+              min={tempRange.min}
+              max={tempRange.max}
+              step="1"
             className="w-full range range-success range-sm"
-          />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {`${Math.round(displayValues.maxTemp)}°${preferences.temperatureUnit}`}
-          </span>
+            />
+          )}
+          {!isLoading && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {`${Math.round(displayValues.maxTemp)}°${preferences.temperatureUnit}`}
+            </span>
+          )}
         </div>
 
         {/* Min Moisture Threshold */}
@@ -155,18 +179,24 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Min Moisture Threshold (%)
           </label>
-          <input
-            type="range"
-            name="preferences.minMoistureThreshold"
-            value={preferences.minMoistureThreshold}
-            onChange={onChange}
-            min="0"
-            max="100"
+          {isLoading ? (
+            <SkeletonInput />
+          ) : (
+            <input
+              type="range"
+              name="preferences.minMoistureThreshold"
+              value={preferences.minMoistureThreshold}
+              onChange={onChange}
+              min="0"
+              max="100"
             className="w-full range range-success range-sm"
-          />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {preferences.minMoistureThreshold}%
-          </span>
+            />
+          )}
+          {!isLoading && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {preferences.minMoistureThreshold}%
+            </span>
+          )}
         </div>
 
         {/* Max Moisture Threshold */}
@@ -174,18 +204,24 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Max Moisture Threshold (%)
           </label>
-          <input
-            type="range"
-            name="preferences.maxMoistureThreshold"
-            value={preferences.maxMoistureThreshold}
-            onChange={onChange}
-            min="0"
-            max="100"
+          {isLoading ? (
+            <SkeletonInput />
+          ) : (
+            <input
+              type="range"
+              name="preferences.maxMoistureThreshold"
+              value={preferences.maxMoistureThreshold}
+              onChange={onChange}
+              min="0"
+              max="100"
             className="w-full range range-success range-sm"
-          />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {preferences.maxMoistureThreshold}%
-          </span>
+            />
+          )}
+          {!isLoading && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {preferences.maxMoistureThreshold}%
+            </span>
+          )}
         </div>
 
         {/* Lighting Hours */}
@@ -194,29 +230,37 @@ export function PreferencesCard({ formData = {}, onChange }) {
             <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
               Lighting Start Hour
             </label>
-            <input
-              type="number"
-              name="preferences.lightingStartHour"
-              value={preferences.lightingStartHour}
-              onChange={onChange}
-              min="0"
-              max="23"
+            {isLoading ? (
+              <SkeletonInput />
+            ) : (
+              <input
+                type="number"
+                name="preferences.lightingStartHour"
+                value={preferences.lightingStartHour}
+                onChange={onChange}
+                min="0"
+                max="23"
               className="w-full input input-success bg-transparent text-black dark:text-white"
-            />
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
               Lighting End Hour
             </label>
-            <input
-              type="number"
-              name="preferences.lightingEndHour"
-              value={preferences.lightingEndHour}
-              onChange={onChange}
-              min="0"
-              max="23"
+            {isLoading ? (
+              <SkeletonInput />
+            ) : (
+              <input
+                type="number"
+                name="preferences.lightingEndHour"
+                value={preferences.lightingEndHour}
+                onChange={onChange}
+                min="0"
+                max="23"
               className="w-full input input-success bg-transparent text-black dark:text-white"
-            />
+              />
+            )}
           </div>
         </div>
 
@@ -225,16 +269,20 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Fertilizer Schedule
           </label>
-          <select
-            name="preferences.fertilizerSchedule"
-            value={preferences.fertilizerSchedule}
-            onChange={onChange}
+          {isLoading ? (
+            <SkeletonSelect />
+          ) : (
+            <select
+              name="preferences.fertilizerSchedule"
+              value={preferences.fertilizerSchedule}
+              onChange={onChange}
             className="select select-success w-full text-black dark:text-white bg-transparent dark:bg-gray-800"
-          >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          )}
         </div>
 
         {/* Fertilizer Time */}
@@ -242,15 +290,19 @@ export function PreferencesCard({ formData = {}, onChange }) {
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
             Fertilizer Time (Hour)
           </label>
-          <input
-            type="number"
-            name="preferences.fertilizerTime"
-            value={preferences.fertilizerTime}
-            onChange={onChange}
-            min="0"
-            max="23"
+          {isLoading ? (
+            <SkeletonInput />
+          ) : (
+            <input
+              type="number"
+              name="preferences.fertilizerTime"
+              value={preferences.fertilizerTime}
+              onChange={onChange}
+              min="0"
+              max="23"
             className="w-full input input-success bg-transparent text-black dark:text-white"
-          />
+            />
+          )}
         </div>
 
         {preferences.fertilizerSchedule === 'weekly' && (
@@ -258,16 +310,20 @@ export function PreferencesCard({ formData = {}, onChange }) {
             <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
               Fertilizer Day of Week
             </label>
-            <select
-              name="preferences.fertilizerDayOfWeek"
-              value={preferences.fertilizerDayOfWeek}
-              onChange={onChange}
+            {isLoading ? (
+              <SkeletonSelect />
+            ) : (
+              <select
+                name="preferences.fertilizerDayOfWeek"
+                value={preferences.fertilizerDayOfWeek}
+                onChange={onChange}
               className="select select-success w-full text-black dark:text-white bg-transparent dark:bg-gray-800"
-            >
-              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
-                <option key={day} value={day}>{day}</option>
-              ))}
-            </select>
+              >
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+            )}
           </div>
         )}
 
@@ -276,15 +332,19 @@ export function PreferencesCard({ formData = {}, onChange }) {
             <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
               Fertilizer Day of Month
             </label>
-            <input
-              type="number"
-              name="preferences.fertilizerDayOfMonth"
-              value={preferences.fertilizerDayOfMonth}
-              onChange={onChange}
-              min="1"
-              max="31"
+            {isLoading ? (
+              <SkeletonInput />
+            ) : (
+              <input
+                type="number"
+                name="preferences.fertilizerDayOfMonth"
+                value={preferences.fertilizerDayOfMonth}
+                onChange={onChange}
+                min="1"
+                max="31"
               className="w-full input input-success bg-transparent text-black dark:text-white"
-            />
+              />
+            )}
           </div>
         )}
       </div>

@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import Login from './pages/Login'
-import { DarkModeToggle } from './components/ui/DarkModeToggle'
 import { NotificationProvider } from './contexts/NotificationContext'
 import AuthenticatedApp from './components/auth/AuthenticatedApp'
 
@@ -18,7 +17,6 @@ const App = () => {
             <Route path="/login" element={<Login />} />
           </Routes>
         </BrowserRouter>
-        <DarkModeToggle />
         <Toaster position="top-right" />
       </NotificationProvider>
     </QueryClientProvider>

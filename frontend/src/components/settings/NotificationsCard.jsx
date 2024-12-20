@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check, Info } from "lucide-react";
 
-export function NotificationsCard({ formData, onChange }) {
+export function NotificationsCard({ formData, onChange, isLoading }) {
   // Ensure we have default values with proper nesting
   const notifications = {
     email: { enabled: false, address: '' },
@@ -24,6 +24,10 @@ export function NotificationsCard({ formData, onChange }) {
     });
   };
 
+  const SkeletonInput = () => (
+    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+  );
+
   return (
     <motion.div 
       className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-6"
@@ -37,7 +41,7 @@ export function NotificationsCard({ formData, onChange }) {
           <h2 className="text-lg font-medium">Notification Settings</h2>
           <div className="group relative">
             <Info className="w-4 h-4 text-gray-400" />
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1 bg-gray-800 
+            <div className="absolute -left-60 bottom-5 sm:left-1/2 sm:-translate-x-1/2 sm:bottom-full mb-2 px-3 py-1 bg-gray-800 
               text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity
               whitespace-nowrap pointer-events-none">
                 Notifications are only sent for manual mode devices
@@ -55,7 +59,10 @@ export function NotificationsCard({ formData, onChange }) {
         >
           {/* Email Notifications */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 cursor-pointer">
+            {isLoading ? (
+              <SkeletonInput />
+            ) : (
+              <div className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox"
                 name="notifications.email.enabled"
                 checked={notifications.email.enabled}
@@ -64,7 +71,8 @@ export function NotificationsCard({ formData, onChange }) {
                 <span className="text-sm text-gray-600 dark:text-gray-300 hover:text-green-500 transition-colors">
                   Email Notifications
                 </span>
-            </div>
+              </div>
+            )}
             <AnimatePresence>
               {notifications.email.enabled && (
                 <motion.input
@@ -83,16 +91,20 @@ export function NotificationsCard({ formData, onChange }) {
           </div>
 
           {/* Push Notifications */}
-          <div className="flex items-center gap-2 cursor-pointer">
+          {isLoading ? (
+            <SkeletonInput />
+          ) : (
+            <div className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox"
-              name="notifications.push"
-              checked={notifications.push}
-              onChange={handleChange}
-              className="checkbox checkbox-success border-2" />
+                name="notifications.push"
+                checked={notifications.push}
+                onChange={handleChange}
+                className="checkbox checkbox-success border-2" />
               <span className="text-sm text-gray-600 dark:text-gray-300 hover:text-green-500 transition-colors">
                 Push Notifications
               </span>
-          </div>
+            </div>
+          )}
 
         </motion.div>
       </AnimatePresence>

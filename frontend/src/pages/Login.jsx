@@ -27,16 +27,16 @@ export default function Login() {
             navigate("/");
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid password", { id: toastId });
-            setPassword(""); // Clear password on error
+            setPassword("");
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-green-200 dark:from-gray-900 dark:to-gray-800 p-4">
+        <div className="min-h-[100dvh] flex max-sm:pt-40 sm:items-center justify-center bg-gradient-to-br from-green-100 to-green-200 dark:from-gray-900 dark:to-gray-800 p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-green-100 dark:bg-gray-800 rounded-2xl shadow-xl p-8"
+                className="w-full max-w-md bg-green-100 dark:bg-gray-800 max-sm:bg-transparent max-sm:dark:bg-transparent rounded-2xl sm:shadow-xl p-2 sm:p-8"
             >
                 <motion.div 
                     className="flex justify-center items-center mb-8"

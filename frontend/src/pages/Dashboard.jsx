@@ -4,6 +4,7 @@ import { RadialSensor } from "../components/dashboard/RadialSensor";
 import { Thermometer, Droplets } from "lucide-react";
 import { SensorChart } from "../components/dashboard/SensorChart";
 import { useFetchSettings } from "../hooks/useSettings";
+import { toast } from 'react-hot-toast'
 
 export default function Dashboard() {
     const { sensorData, isLoading, error } = useSensorData();
@@ -44,8 +45,9 @@ export default function Dashboard() {
             : "text-blue-500";
     };
 
+    const toastId = 'sensor error'
     if (error) {
-        return <div className="text-red-500 p-4">{error}</div>;
+        toast.error(error, { id: toastId } )
     }
 
     const tempRange = getTempRange();
@@ -92,7 +94,7 @@ export default function Dashboard() {
 
             {/* Sensor Chart */}
             <motion.div
-                className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6"
+                className="bg-green-50 dark:bg-gray-800 rounded-lg shadow-sm p-1 sm:p-4 md:p-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}

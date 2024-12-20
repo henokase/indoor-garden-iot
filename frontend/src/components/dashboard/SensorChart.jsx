@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useSensorHistory } from '../../hooks/useSensorHistory'
+import {toast} from 'react-hot-toast'
 
 export function SensorChart() {
   const [selectedMetric, setSelectedMetric] = useState('temperature')
   const { data: rawData, isLoading, error } = useSensorHistory(selectedMetric)
 
   const metrics = [
-    { id: 'temperature', label: 'Temperature', color: '#f97316', bgColor: 'bg-orange-50 text-orange-600' },
-    { id: 'moisture', label: 'Moisture', color: '#3b82f6', bgColor: 'bg-gray-100 text-gray-600' }
+    { id: 'temperature', label: 'Temperature', color: '#f97316', bgColor: 'bg-orange-200 text-orange-900' },
+    { id: 'moisture', label: 'Moisture', color: '#3b82f6', bgColor: 'bg-blue-200 text-blue-900' }
   ]
 
   // Format data for Recharts with validation
@@ -61,36 +62,20 @@ export function SensorChart() {
   if (isLoading) {
     return (
       <div className="h-[400px] flex items-center justify-center">
-        <div className="animate-pulse text-gray-500">Loading...</div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="h-[400px] flex items-center justify-center">
-        <div className="text-red-500">Failed to load sensor data</div>
-      </div>
-    )
-  }
-
-  if (formattedData.length === 0) {
-    return (
-      <div className="h-[400px] flex items-center justify-center">
-        <div className="text-gray-500">No data available</div>
+        <div className="animate-pulse w-[96%] h-[96%] bg-gray-900 rounded-lg"></div>
       </div>
     )
   }
 
   return (
     <div>
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 p-4">
         {metrics.map(metric => (
           <button
             key={metric.id}
             onClick={() => setSelectedMetric(metric.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-              ${selectedMetric === metric.id ? metric.bgColor : 'hover:bg-gray-50'}`}
+              ${selectedMetric === metric.id ? metric.bgColor : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300'}`}
           >
             {metric.label}
           </button>
