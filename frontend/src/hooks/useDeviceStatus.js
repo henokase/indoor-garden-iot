@@ -1,31 +1,22 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { useSocket } from './useSocket';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export function useDeviceStatus() {
   const { socket, subscribeTo, isConnected } = useSocket() || {}
-  const [deviceStatusData, setDeviceStatusData] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const queryClient = useQueryClient()
+
+  const { data: deviceStatusData = [], isLoading, error } = useQuery({
+    queryKey: ['deviceStatus'],
+    queryFn: async () => {
+      const { data } = await api.get('/devices')
+      return Array.isArray(data) ? data : []
+    },
+    staleTime: 30000, // Consider data fresh for 30 seconds
+  })
 
   useEffect(() => {
-    const fetchDeviceStatusData = async () => {
-      try {
-        setIsLoading(true)
-        const { data } = await api.get('/devices')
-        setDeviceStatusData(Array.isArray(data) ? data : [])
-        setError(null)
-      } catch (err) {
-        console.error('Error fetching device status:', err)
-        setError('Failed to fetch device status')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchDeviceStatusData()
-
     if (socket && isConnected) {
       console.log('Setting up socket subscriptions')
       
@@ -39,8 +30,8 @@ export function useDeviceStatus() {
       subscribeToAll()
 
       socket.on('device:update', (data) => {
-        setDeviceStatusData(prevData => {
-          const updatedData = Array.isArray(prevData) ? [...prevData] : []
+        queryClient.setQueryData(['deviceStatus'], (oldData = []) => {
+          const updatedData = [...oldData]
           const deviceIndex = updatedData.findIndex(d => d.name === data.name)
           
           if (deviceIndex !== -1) {
@@ -68,7 +59,7 @@ export function useDeviceStatus() {
         socket.off('connect', subscribeToAll)
       }
     }
-  }, [socket, isConnected, subscribeTo])
+  }, [socket, isConnected, subscribeTo, queryClient])
 
   return { deviceStatusData, isLoading, error }
 }
@@ -100,9 +91,15 @@ export function useToggleDevice() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['deviceStatus'], (oldData) => {
-        if (!oldData) return { [data.name]: data }
-        return { ...oldData, [data.name]: data }
+      queryClient.setQueryData(['deviceStatus'], (oldData = []) => {
+        const updatedData = [...oldData]
+        const deviceIndex = updatedData.findIndex(d => d.name === data.name)
+        
+        if (deviceIndex !== -1) {
+          updatedData[deviceIndex] = { ...updatedData[deviceIndex], ...data }
+        }
+        
+        return updatedData
       })
     },
     onError: (error) => {
@@ -120,9 +117,15 @@ export function useToggleAutoMode() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['deviceStatus'], (oldData) => {
-        if (!oldData) return { [data.name]: data }
-        return { ...oldData, [data.name]: data }
+      queryClient.setQueryData(['deviceStatus'], (oldData = []) => {
+        const updatedData = [...oldData]
+        const deviceIndex = updatedData.findIndex(d => d.name === data.name)
+        
+        if (deviceIndex !== -1) {
+          updatedData[deviceIndex] = { ...updatedData[deviceIndex], ...data }
+        }
+        
+        return updatedData
       })
     },
     onError: (error) => {

@@ -31,7 +31,7 @@ export function PasswordCard({ isLoading }) {
                 confirmPassword: "",
             });
         } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to update password");
+            console.error("Password update error:", error);
         }
     };
 

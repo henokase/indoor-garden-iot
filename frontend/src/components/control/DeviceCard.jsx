@@ -1,9 +1,9 @@
 import { Switch } from "../ui/Switch"
-import { motion } from "framer-motion"
 import { useToggleDevice, useToggleAutoMode } from '../../hooks/useDeviceStatus'
 import { toast } from 'react-hot-toast'
+import { memo } from 'react'
 
-export function DeviceCard({ device }) {
+const DeviceCard = memo(function DeviceCard({ device }) {
     const { mutateAsync: toggleDevice, isPending: isToggling } = useToggleDevice()
     const { mutateAsync: toggleAutoMode, isPending: isTogglingAuto } = useToggleAutoMode()
 
@@ -38,12 +38,7 @@ export function DeviceCard({ device }) {
     }
 
     return (
-        <motion.div
-            className="bg-green-50 dark:bg-gray-800 p-6 rounded-lg shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-        >
+        <div className="bg-green-50 dark:bg-gray-800 p-6 rounded-lg shadow-md opacity-0 translate-y-4 animate-fade-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                     <div className={`${device.iconColor}`}>
@@ -96,6 +91,8 @@ export function DeviceCard({ device }) {
                     </span>
                 )}
             </div>
-        </motion.div>
+        </div>
     )
-} 
+})
+
+export { DeviceCard }
