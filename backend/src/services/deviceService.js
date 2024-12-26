@@ -10,6 +10,7 @@ export const deviceService = {
 
   async getDevice(name) {
     const device = await Device.findOne({ name }).lean()
+    // console.log(`Getting device ${name}:`, device);
     if (!device) {
       throw new Error('Device not found')
     }
@@ -75,7 +76,7 @@ export const deviceService = {
 
     // Notify microcontroller via MQTT first
     try {
-      await mqttService.publish('indoor-garden/commands', {
+      await mqttService.publish('indoor-garden/devices', {
         device: name,
         status,
         autoMode: updatedDevice.autoMode
@@ -97,13 +98,6 @@ export const deviceService = {
 
       throw new Error('Failed to communicate with device. Changes reverted.')
     }
-
-    // If MQTT succeeded, notify clients via Socket.IO
-    await emitDeviceUpdate(name, updatedDevice)
-
-    console.log('Device updated:', updatedDevice)
-
-    return updatedDevice
   },
 
   async toggleAutoMode(name, enabled) {

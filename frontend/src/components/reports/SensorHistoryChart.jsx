@@ -84,12 +84,14 @@ export function SensorHistoryChart({ dateRange }) {
             tickCount = 8;
         }
         
+        // Generate evenly spaced ticks
         const ticks = [];
         for (let i = 0; i < tickCount; i++) {
-            ticks.push(minTime + ((maxTime - minTime) * i) / (tickCount - 1));
+            const tickTime = minTime + ((maxTime - minTime) * i) / (tickCount - 1);
+            ticks.push(Math.round(tickTime)); // Round to avoid floating point issues
         }
         
-        return ticks;
+        return Array.from(new Set(ticks)); // Remove any duplicates
     };
 
     return (

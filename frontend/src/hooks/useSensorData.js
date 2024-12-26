@@ -66,3 +66,37 @@ export function useSensorData() {
 
   return { sensorData, isLoading, error }
 }
+
+export function useSensorHistory(type, dateRange) {
+  const [data, setData] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setIsLoading(true)
+        const { data: response } = await api.get(`/sensors/${type}/readings`, {
+          params: {
+            startDate: dateRange.start.toISOString(),
+            endDate: dateRange.end.toISOString()
+          }
+        })
+        setData(response.data || [])
+        setError(null)
+      } catch (err) {
+        console.error(`Error fetching ${type} history:`, err)
+        setError(`Failed to fetch ${type} history`)
+        setData([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (dateRange?.start && dateRange?.end) {
+      fetchHistory()
+    }
+  }, [type, dateRange])
+
+  return { data, isLoading, error }
+}

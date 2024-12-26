@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Garden Controller Documentation</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2196F3;
+            --background: #f5f5f5;
+            --text: #333;
+            --card-bg: #fff;
+            --border: #ddd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 60px 0 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .libraries h2::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234CAF50'%3E%3Cpath d='M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z'/%3E%3C/svg%3E");
+        }
+
+        .pin-definitions h2::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234CAF50'%3E%3Cpath d='M7 2v11h3v9l7-12h-4l4-8z'/%3E%3C/svg%3E");
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        li::before {
+            content: '•';
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: -15px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 5px 5px 0;
+            overflow-x: auto;
+        }
+
+        .diagram {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        #toc {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 250px;
+            display: none;
+        }
+
+        @media (min-width: 1400px) {
+            #toc {
+                display: block;
+            }
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc-list li {
+            margin: 10px 0;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .toc-list li:hover {
+            color: var(--primary);
+        }
+
+        .highlight {
+            background: #e3f2fd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <h1>ESP32 Garden Controller</h1>
+            <p>Complete Documentation and Implementation Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav id="toc">
+            <h3>Contents</h3>
+            <ul class="toc-list"></ul>
+        </nav>
+
+        <section id="libraries" class="section-card libraries">
+            <h2>1. Libraries and Dependencies</h2>
+            <p>The code includes several libraries to support the system:</p>
+            <ul>
+                <li><span class="highlight">WiFi.h</span>: Connects the ESP32 to WiFi</li>
+                <li><span class="highlight">PubSubClient.h</span>: Handles MQTT communication for sending/receiving data</li>
+                <li><span class="highlight">ArduinoJson.h</span>: Enables easy JSON serialization and deserialization for data exchange</li>
+                <li><span class="highlight">DHT.h</span>: Interfaces with the DHT22 temperature and humidity sensor</li>
+                <li><span class="highlight">NTPClient.h</span> and <span class="highlight">WiFiUdp.h</span>: Fetches the current time from an NTP server</li>
+                <li><span class="highlight">Wire.h</span> and <span class="highlight">LiquidCrystal_I2C.h</span>: Supports I2C communication and controls the LCD</li>
+            </ul>
+        </section>
+
+        <section id="pin-definitions" class="section-card pin-definitions">
+            <h2>2. Pin Definitions</h2>
+            <p>The code defines GPIO pins for connected devices:</p>
+            <ul>
+                <li><span class="highlight">DHT_PIN</span>: For the DHT22 sensor</li>
+                <li><span class="highlight">MOISTURE_SENSOR_PIN</span>: Analog pin to measure soil moisture</li>
+                <li><span class="highlight">FAN_PIN</span>, <span class="highlight">PUMP_PIN</span>, <span class="highlight">LIGHT_PIN</span>, <span class="highlight">FERTILIZER_PIN</span>: Output pins for controlling respective devices</li>
+                <li><span class="highlight">I2C_SDA</span>, <span class="highlight">I2C_SCL</span>: Default I2C pins for LCD communication</li>
+            </ul>
+        </section>
+
+        <section id="configuration" class="section-card">
+            <h2>3. Constants and Configuration</h2>
+            <ul>
+                <li><strong>WiFi and MQTT Credentials</strong>: Stores the credentials to connect to WiFi and MQTT broker</li>
+                <li><strong>MQTT Topics</strong>: Specifies the topics for publishing sensor data, device states, and commands</li>
+                <li><strong>Update Intervals</strong>: Configures time intervals for updating sensors, MQTT reconnections, and LCD updates</li>
+                <li><strong>Offline Automation Thresholds</strong>: Defines temperature and moisture thresholds to control devices locally</li>
+            </ul>
+        </section>
+
+        <section id="states" class="section-card">
+            <h2>4. Device and Sensor States</h2>
+            <ul>
+                <li><strong>DeviceState Struct</strong>: Holds the status (true for ON, false for OFF) and mode (automatic/manual) of devices</li>
+                <li><strong>SensorData Struct</strong>: Tracks temperature, moisture levels, and the last update timestamp</li>
+            </ul>
+        </section>
+
+        <section id="initialization" class="section-card">
+            <h2>5. Initialization (setup function)</h2>
+            <ul>
+                <li><strong>Serial Communication</strong>: Initializes serial for debugging</li>
+                <li><strong>Pin Modes</strong>: Sets device pins as OUTPUT and moisture sensor as INPUT</li>
+                <li><strong>Sensor Initialization</strong>: Initializes the DHT sensor</li>
+                <li><strong>WiFi Connection</strong>: Calls setupWiFi() to connect the ESP32 to WiFi</li>
+                <li><strong>MQTT Configuration</strong>: Sets up the MQTT broker and assigns a callback for incoming messages</li>
+                <li><strong>NTP Client</strong>: Initializes the NTP client for time synchronization</li>
+                <li><strong>LCD Initialization</strong>: Prepares the LCD for displaying messages</li>
+            </ul>
+        </section>
+
+        <section id="main-loop" class="section-card">
+            <h2>6. Main Loop</h2>
+            <p>The loop() function manages the system's operations in real-time:</p>
+            <ul>
+                <li><strong>Connectivity Check</strong>: Periodically checks if WiFi and MQTT are connected</li>
+                <li><strong>Sensor Updates</strong>: Reads temperature and moisture data at regular intervals</li>
+                <li><strong>MQTT Operations</strong>: Processes MQTT messages and publishes data to the server</li>
+                <li><strong>Offline Automation</strong>: Manages devices locally if the system is offline</li>
+                <li><strong>LCD Updates</strong>: Updates the LCD with the latest temperature, moisture, and system status</li>
+            </ul>
+        </section>
+
+        <section id="wifi-mqtt" class="section-card">
+            <h2>7. WiFi and MQTT Functions</h2>
+            <ul>
+                <li><strong>setupWiFi()</strong>: Connects to WiFi and retries until successful</li>
+                <li><strong>reconnectMQTT()</strong>: Attempts to reconnect to the MQTT broker and subscribes to the commands topic</li>
+            </ul>
+        </section>
+
+        <section id="sensor-data" class="section-card">
+            <h2>8. Sensor Data Management</h2>
+            <ul>
+                <li><strong>updateSensorData()</strong>: Reads temperature and moisture data, applies moving average for stability</li>
+                <li><strong>publishSensorData()</strong>: Sends the sensor data to the MQTT broker in JSON format</li>
+            </ul>
+        </section>
+
+        <section id="device-state" class="section-card">
+            <h2>9. Device State Management</h2>
+            <ul>
+                <li><strong>publishDeviceStates()</strong>: Sends current device states to the MQTT broker</li>
+                <li><strong>mqttCallback()</strong>: Processes incoming MQTT messages and updates device states</li>
+            </ul>
+        </section>
+
+        <section id="offline" class="section-card">
+            <h2>10. Offline Automation</h2>
+            <p>If the system cannot connect to WiFi or MQTT:</p>
+            <ul>
+                <li><strong>enterOfflineMode()</strong>: Switches to offline mode and enables auto mode</li>
+                <li><strong>exitOfflineMode()</strong>: Restores online operation and syncs states</li>
+                <li><strong>handleOfflineAutomation()</strong>: Controls devices based on sensor readings:
+                    <ul>
+                        <li>Fan control based on temperature thresholds</li>
+                        <li>Pump activation for low soil moisture</li>
+                        <li>Time-based lighting control</li>
+                        <li>Timed fertilizer dispensing</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="lcd" class="section-card">
+            <h2>11. LCD Display</h2>
+            <p><strong>updateLCD()</strong>: Updates the LCD with:</p>
+            <ul>
+                <li>Current temperature</li>
+                <li>Moisture level</li>
+                <li>Connection status (ON/OFF/NO)</li>
+            </ul>
+        </section>
+
+        <section id="highlights" class="section-card">
+            <h2>12. Key Highlights</h2>
+            <ul>
+                <li><strong>Dual Operation Modes</strong>: Functions both online and offline</li>
+                <li><strong>Real-Time Feedback</strong>: LCD provides live system status</li>
+                <li><strong>Energy Efficiency</strong>: Automatic control based on conditions</li>
+                <li><strong>Fault Tolerance</strong>: Robust connection handling and offline capabilities</li>
+            </ul>
+        </section>
+
+        <section id="faq" class="section-card">
+            <h2>Potential Questions</h2>
+            <ul>
+                <li><strong>Q: What happens if WiFi is never restored?</strong><br>
+                    A: The system will remain in offline mode and manage devices autonomously.</li>
+                <li><strong>Q: How does it handle noisy sensor readings?</strong><br>
+                    A: The code applies a moving average to the moisture readings for stability.</li>
+                <li><strong>Q: How does it ensure accurate time-based lighting control?</strong><br>
+                    A: Uses the NTP client to fetch the current time when online.</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        // Generate Table of Contents
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section');
+            const tocList = document.querySelector('.toc-list');
+
+            sections.forEach(section => {
+                const title = section.querySelector('h2').textContent;
+                const li = document.createElement('li');
+                li.textContent = title;
+                li.onclick = () => section.scrollIntoView({ behavior: 'smooth' });
+                tocList.appendChild(li);
+            });
+
+            // Highlight current section
+            let observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        document.querySelectorAll('.toc-list li').forEach(li => {
+                            li.style.fontWeight = li.textContent.toLowerCase().includes(id) ? 'bold' : 'normal';
+                        });
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(section => observer.observe(section));
+        });
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

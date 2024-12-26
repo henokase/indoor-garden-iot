@@ -18,4 +18,7 @@ router.get('/:type/readings', sensorController.getSensorReadingsByDateRange)
 // Get sensor reading stats for a specific sensor
 router.get('/:type/stats', sensorController.getStats)
 
+// Add this route
+router.get('/:type/download', sensorController.getSensorReadingsForDownload)
+
 export default router 

@@ -3,6 +3,7 @@ import { sensorService } from './sensorService.js'
 import { settingsService } from './settingsService.js'
 import { mqttService } from '../config/mqtt.js'
 import EventEmitter from 'events'
+import { Device } from '../models/Device.js'
 
 export class AutomationService extends EventEmitter {
   constructor() {
@@ -63,7 +64,7 @@ export class AutomationService extends EventEmitter {
       } finally {
         // Schedule next check only if automation is still running
         if (this.isRunning) {
-          this.interval = setTimeout(scheduleNextCheck, 50000);
+          this.interval = setTimeout(scheduleNextCheck, 5000);
         }
       }
     };
@@ -92,23 +93,31 @@ export class AutomationService extends EventEmitter {
   }
 
   async checkConditionsAndAct() {
-    if (this.isProcessing) return; // Prevent concurrent execution
+    if (this.isProcessing) return;
     
     try {
       this.isProcessing = true;
       const devices = {
-        fan: deviceService.getDevice('fan'),
-        irrigation: deviceService.getDevice('irrigation'),
-        lighting: deviceService.getDevice('lighting'),
-        fertilizer: deviceService.getDevice('fertilizer')
+        fan: await Device.findOne({ name: 'fan' }).lean(),
+        irrigation: await Device.findOne({ name: 'irrigation' }).lean(),
+        lighting: await Device.findOne({ name: 'lighting' }).lean(),
+        fertilizer: await Device.findOne({ name: 'fertilizer' }).lean()
       };
       
-      // Validate devices before proceeding
       if (Object.values(devices).some(device => !device)) {
-        throw new Error('One or more devices not available');
+        console.error('Missing devices:', Object.entries(devices)
+          .filter(([key, value]) => !value)
+          .map(([key]) => key)
+          .join(', '));
+        return;
       }
       
-      await this.processReadings(devices.fan, devices.irrigation, devices.lighting, devices.fertilizer);
+      await this.processReadings(
+        devices.fan,
+        devices.irrigation,
+        devices.lighting,
+        devices.fertilizer
+      );
     } finally {
       this.isProcessing = false;
     }
@@ -146,39 +155,60 @@ export class AutomationService extends EventEmitter {
     }
   }
 
-  async handleImmediateSensorReading(sensorData) {
-    if (this.isProcessing) return; // Prevent concurrent execution
+  async handleImmediateSensorReading(data) {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
     
     try {
-      this.isProcessing = true;
-      const devices = {
-        fan: deviceService.getDevice('fan'),
-        irrigation: deviceService.getDevice('irrigation'),
-        lighting: deviceService.getDevice('lighting'),
-        fertilizer: deviceService.getDevice('fertilizer')
-      };
-
-      // Validate devices and settings
-      if (Object.values(devices).some(device => !device)) {
-        throw new Error('One or more devices not available');
-      }
-
+      console.log('Processing sensor reading:', data);
       const settings = await settingsService.getSettings();
+      
+      // Change the device lookup to use type instead of name
+      const [fan, pump, light, fertilizer] = await Promise.all([
+        Device.findOne({ name: 'fan' }).lean(),
+        Device.findOne({ name: 'irrigation' }).lean(),
+        Device.findOne({ name: 'lighting' }).lean(),
+        Device.findOne({ name: 'fertilizer' }).lean()
+      ]);
+
+      // console.log('Retrieved devices:', {
+      //   fan: fan?._id ? 'found' : 'not found',
+      //   pump: pump?._id ? 'found' : 'not found',
+      //   light: light?._id ? 'found' : 'not found',
+      //   fertilizer: fertilizer?._id ? 'found' : 'not found'
+      // });
+      
       if (!settings?.preferences) {
-        throw new Error('Invalid settings data');
+        console.error('No settings found or invalid settings');
+        return;
       }
 
-      await this.handleAutomationLogic(
-        settings.preferences,
-        sensorData.temperature,
-        sensorData.moisture,
-        devices.fan,
-        devices.irrigation,
-        devices.lighting,
-        devices.fertilizer
-      );
+      // Temperature control
+      if (fan) {
+        if (fan.autoMode) {
+          // console.log(`Fan control - Temperature: ${data.temperature}°C, Thresholds: ${settings.preferences.minTemperatureThreshold}-${settings.preferences.maxTemperatureThreshold}°C`);
+          if (data.temperature > settings.preferences.maxTemperatureThreshold && !fan.status) {
+            await deviceService.toggleDevice('fan', true);
+          } else if (data.temperature < settings.preferences.minTemperatureThreshold && fan.status) {
+            await deviceService.toggleDevice('fan', false);
+          }
+        }
+      }
+      
+      // Moisture control
+      if (pump) {
+        if (pump.autoMode) {
+          // console.log(`Pump control - Moisture: ${data.moisture}%, Thresholds: ${settings.preferences.minMoistureThreshold}-${settings.preferences.maxMoistureThreshold}%`);
+          if (data.moisture < settings.preferences.minMoistureThreshold && !pump.status) {
+            await deviceService.toggleDevice('irrigation', true);
+          } else if (data.moisture > settings.preferences.maxMoistureThreshold && pump.status) {
+            await deviceService.toggleDevice('irrigation', false);
+          }
+        }
+      }
+
     } catch (error) {
-      console.error('Error handling immediate sensor reading:', error);
+      console.error('Error in handleImmediateSensorReading:', error.stack);
     } finally {
       this.isProcessing = false;
     }

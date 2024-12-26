@@ -20,7 +20,8 @@ const connectDB = async () => {
   };
 
   try {
-    mongoose.set('debug', true); // Enable debug logging
+    // mongoose.set('debug', true); // Enable debug logging
+    
     const connection = await mongoose.connect(env.MONGODB_URI, options);
     console.log(`MongoDB Connected: ${connection.connection.host}`);
 

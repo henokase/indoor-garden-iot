@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useSensorHistory } from '../../hooks/useSensorHistory'
-import {toast} from 'react-hot-toast'
 
 export function SensorChart() {
   const [selectedMetric, setSelectedMetric] = useState('temperature')
@@ -62,7 +61,7 @@ export function SensorChart() {
   if (isLoading) {
     return (
       <div className="h-[400px] flex items-center justify-center">
-        <div className="animate-pulse w-[96%] h-[96%] bg-gray-900 rounded-lg"></div>
+        <div className="animate-pulse w-[96%] h-[96%] bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
       </div>
     )
   }

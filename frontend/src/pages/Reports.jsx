@@ -6,6 +6,8 @@ import { Battery, Droplets } from 'lucide-react'
 import { SensorHistoryChart } from '../components/reports/SensorHistoryChart'
 import DateRangePicker from '../components/reports/DateRangePicker'
 import { useResourceStats } from '../hooks/useResourceUsage'
+import { DownloadButton } from '../components/reports/DownloadButton'
+import { AnalysisDownloadButton } from '../components/reports/AnalysisDownloadButton'
 
 export default function Reports() {
   const [dateRange, setDateRange] = useState(() => {
@@ -24,12 +26,23 @@ export default function Reports() {
 
   return (
     <div className="p-1 sm:p-4 md:p-6 max-w-7xl mx-auto">
-      <motion.h1 
-        className="text-2xl p-3 pb-0 sm:p-0 font-bold mb-6 bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
-        {...fadeIn}
-      >
-        Reports & Analysis
-      </motion.h1>
+      <motion.div className="flex flex-col gap-3 mb-6  p-3 pb-0 sm:p-0">
+        <motion.h1 
+          className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 text-transparent bg-clip-text"
+          {...fadeIn}
+        >
+          Reports & Analysis
+        </motion.h1>
+        <div className="flex gap-4 flex-wrap">
+          <DownloadButton 
+            type={selectedChartType} 
+            dateRange={dateRange}
+          />
+          <AnalysisDownloadButton 
+            dateRange={dateRange}
+          />
+        </div>
+      </motion.div>
 
       {/* Usage Stats */}
       <motion.div 

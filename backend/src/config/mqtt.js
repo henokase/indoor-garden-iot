@@ -89,53 +89,81 @@ class MQTTService {
   async handleMessage(topic, message) {
     try {
       const payload = JSON.parse(message.toString())
-      console.log('MQTT Message Received:', { topic, payload })
 
       if (topic === 'indoor-garden/sensors') {
+        console.log('MQTT Message Received:', { topic, payload })
+        
+        // Parse the timestamp from ISO string or use current time as fallback
+        let timestamp;
+        try {
+          timestamp = payload.timestamp ? new Date(payload.timestamp) : new Date();
+          
+          // Validate the timestamp
+          if (isNaN(timestamp.getTime())) {
+            console.warn('Invalid timestamp received:', payload.timestamp);
+            timestamp = new Date();
+          }
+        } catch (error) {
+          console.warn('Error parsing timestamp:', error);
+          timestamp = new Date();
+        }
+
+        console.log('Processing sensor reading with timestamp:', timestamp.toISOString())
+
         // Save sensor readings to database
         const sensorPromises = [
           SensorReading.create({
             type: 'temperature',
             value: payload.temperature,
             unit: 'C',
-            timestamp: new Date(payload.timestamp)
+            timestamp: timestamp
           }),
           SensorReading.create({
             type: 'moisture',
             value: payload.moisture,
             unit: '%',
-            timestamp: new Date(payload.timestamp)
+            timestamp: timestamp
           })
         ]
 
-        await Promise.all(sensorPromises)
+        const [tempReading, moistureReading] = await Promise.all(sensorPromises)
+        console.log('Saved sensor readings:', {
+          temperature: {
+            value: tempReading.value,
+            timestamp: tempReading.timestamp
+          },
+          moisture: {
+            value: moistureReading.value,
+            timestamp: moistureReading.timestamp
+          }
+        })
 
         // Emit updates to connected clients
         emitSensorUpdate('temperature', {
           type: 'temperature',
           value: payload.temperature || null,
-          timestamp: payload.timestamp || null
+          timestamp: timestamp
         })
         emitSensorUpdate('moisture', {
           type: 'moisture',
           value: payload.moisture || null,
-          timestamp: payload.timestamp || null
+          timestamp: timestamp
         })
       }
 
       if (topic === 'indoor-garden/devices') {
-        const { devices } = payload
-        for (const [deviceName, deviceState] of Object.entries(devices)) {
-          try {
-            const updatedDevice = await deviceService.updateDeviceStatus(deviceName, {
-              status: deviceState.status,
-              autoMode: deviceState.autoMode,
-              lastUpdated: deviceState.lastUpdated || new Date()
-            })
-            console.log('Device updated:', { deviceName, updatedDevice })
-          } catch (error) {
-            console.error(`Error updating device ${deviceName}:`, error)
-          }
+        try {
+          const deviceName = payload.device;
+          const deviceState = {
+            status: payload.status,
+            autoMode: payload.autoMode,
+            lastUpdated: payload.lastUpdated || new Date()
+          };
+          
+          const updatedDevice = await deviceService.updateDeviceStatus(deviceName, deviceState);
+          // console.log('Device updated:', { deviceName, updatedDevice });
+        } catch (error) {
+          console.error('Error updating device:', error);
         }
       }
     } catch (error) {
@@ -166,7 +194,8 @@ class MQTTService {
     if (!this.connected) {
       throw new Error('MQTT client not connected')
     }
-    this.client.publish(`${env.MQTT_TOPIC_PREFIX}/${topic}`, JSON.stringify(message))
+    this.client.publish(topic, JSON.stringify(message))
+    console.log(`Published message to ${topic}:`, message)
   }
 
   isConnected() {

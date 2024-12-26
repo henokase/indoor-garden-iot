@@ -28,21 +28,37 @@ export default function Dashboard() {
 
     // Check if values are within thresholds
     const getTemperatureColor = (value) => {
-        if (!value || !settings) return "text-orange-500";
+        if (!value || !settings?.preferences) return "text-orange-500";
         const temp =
             settings?.preferences?.temperatureUnit === "F"
                 ? ((value - 32) * 5) / 9 // Convert to Celsius for comparison
                 : value;
-        return (temp > settings?.preferences?.maxTemperatureThreshold || temp < settings?.preferences?.minTemperatureThreshold)
-            ? "text-red-500"
-            : "text-orange-500";
+        
+        const minTemp = settings?.preferences?.minTemperatureThreshold;
+        const maxTemp = settings?.preferences?.maxTemperatureThreshold;
+        
+        // Only return red if both thresholds are set and value is outside range
+        if (minTemp !== undefined && maxTemp !== undefined) {
+            return (temp < minTemp || temp > maxTemp)
+                ? "text-red-500"
+                : "text-orange-500";
+        }
+        return "text-orange-500";
     };
 
     const getMoistureColor = (value) => {
-        if (!value || !settings) return "text-blue-500";
-        return (value < settings?.preferences?.minMoistureThreshold || value > settings?.preferences?.maxMoistureThreshold)
-            ? "text-red-500"
-            : "text-blue-500";
+        if (!value || !settings?.preferences) return "text-blue-500";
+        
+        const minMoisture = settings?.preferences?.minMoistureThreshold;
+        const maxMoisture = settings?.preferences?.maxMoistureThreshold;
+        
+        // Only return red if both thresholds are set and value is outside range
+        if (minMoisture !== undefined && maxMoisture !== undefined) {
+            return (value < minMoisture || value > maxMoisture)
+                ? "text-red-500"
+                : "text-blue-500";
+        }
+        return "text-blue-500";
     };
 
     const toastId = 'sensor error'

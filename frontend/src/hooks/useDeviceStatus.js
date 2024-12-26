@@ -90,20 +90,32 @@ export function useToggleDevice() {
       const { data } = await api.post(`/devices/${name}/toggle`, { status })
       return data
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['deviceStatus'], (oldData = []) => {
-        const updatedData = [...oldData]
-        const deviceIndex = updatedData.findIndex(d => d.name === data.name)
-        
-        if (deviceIndex !== -1) {
-          updatedData[deviceIndex] = { ...updatedData[deviceIndex], ...data }
-        }
-        
-        return updatedData
+    onMutate: async ({ name, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['deviceStatus'] })
+      
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(['deviceStatus'])
+      
+      // Optimistically update the UI
+      queryClient.setQueryData(['deviceStatus'], (old = []) => {
+        return old.map(device => 
+          device.name === name 
+            ? { ...device, status } 
+            : device
+        )
       })
+      
+      // Return a context object with the snapshotted value
+      return { previousData }
     },
-    onError: (error) => {
-      console.error('Toggle device error:', error)
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context we returned above
+      queryClient.setQueryData(['deviceStatus'], context.previousData)
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ['deviceStatus'] })
     }
   })
 }
