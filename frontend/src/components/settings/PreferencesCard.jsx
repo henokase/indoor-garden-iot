@@ -18,6 +18,7 @@ export function PreferencesCard({ formData = {}, onChange, isLoading = false }) 
     lightingEndHour: formData.lightingEndHour ?? 18,
     fertilizerSchedule: formData.fertilizerSchedule || 'weekly',
     fertilizerTime: formData.fertilizerTime ?? 8,
+    fertilizerMinute: formData.fertilizerMinute ?? 0,
     fertilizerDayOfWeek: formData.fertilizerDayOfWeek || 'Monday',
     fertilizerDayOfMonth: formData.fertilizerDayOfMonth ?? 1,
   };
@@ -286,23 +287,43 @@ export function PreferencesCard({ formData = {}, onChange, isLoading = false }) 
         </div>
 
         {/* Fertilizer Time */}
-        <div>
-          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
-            Fertilizer Time (Hour)
-          </label>
-          {isLoading ? (
-            <SkeletonInput />
-          ) : (
-            <input
-              type="number"
-              name="preferences.fertilizerTime"
-              value={preferences.fertilizerTime}
-              onChange={onChange}
-              min="0"
-              max="23"
-            className="w-full input input-success bg-transparent text-black dark:text-white"
-            />
-          )}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
+              Fertilizer Hour
+            </label>
+            {isLoading ? (
+              <SkeletonInput />
+            ) : (
+              <input
+                type="number"
+                name="preferences.fertilizerTime"
+                value={preferences.fertilizerTime}
+                onChange={onChange}
+                min="0"
+                max="23"
+                className="w-full input input-success bg-transparent text-black dark:text-white"
+              />
+            )}
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 dark:text-gray-300 mb-2">
+              Fertilizer Minute
+            </label>
+            {isLoading ? (
+              <SkeletonInput />
+            ) : (
+              <input
+                type="number"
+                name="preferences.fertilizerMinute"
+                value={preferences.fertilizerMinute}
+                onChange={onChange}
+                min="0"
+                max="59"
+                className="w-full input input-success bg-transparent text-black dark:text-white"
+              />
+            )}
+          </div>
         </div>
 
         {preferences.fertilizerSchedule === 'weekly' && (

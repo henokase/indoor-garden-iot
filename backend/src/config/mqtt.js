@@ -154,6 +154,12 @@ class MQTTService {
       if (topic === 'indoor-garden/devices') {
         try {
           const deviceName = payload.device;
+          console.log('\n=== Device Update Request ===');
+          console.log('Received device name:', deviceName);
+          
+          // Add debug log for payload
+          console.log('Full payload:', payload);
+
           const deviceState = {
             status: payload.status,
             autoMode: payload.autoMode,
@@ -161,7 +167,8 @@ class MQTTService {
           };
           
           const updatedDevice = await deviceService.updateDeviceStatus(deviceName, deviceState);
-          // console.log('Device updated:', { deviceName, updatedDevice });
+          console.log('Device update result:', updatedDevice ? 'Success' : 'Failed');
+          console.log('===========================\n');
         } catch (error) {
           console.error('Error updating device:', error);
         }

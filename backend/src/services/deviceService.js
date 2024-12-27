@@ -115,41 +115,40 @@ export const deviceService = {
     return updatedDevice
   },
 
-  async updateDeviceStatus(deviceName, status) {
-    const checkDevice = await Device.findOne({ name: deviceName })
-    if (!checkDevice) {
-      throw new Error('Device not found')
-    }
+  async updateDeviceStatus(deviceName, deviceState) {
+    console.log('\n=== Device Status Update ===');
+    console.log('Looking for device:', deviceName);
+    
+    // Get all devices to debug
+    const allDevices = await Device.find({}, 'name');
+    console.log('Available devices in DB:', allDevices.map(d => d.name));
 
-    if (!checkDevice.autoMode) {
-      throw new Error('Device is not in auto mode')
-    }
-
-    // Find device by name instead of _id
-    const device = await Device.findOneAndUpdate(
-      { name: deviceName },
-      {
-        $set: {
-          status: status.status,
-          autoMode: status.autoMode,
-          lastUpdated: new Date()
-        }
-      },
-      { new: true }
-    )
-
+    // Find the device
+    const device = await Device.findOne({ name: deviceName });
+    
     if (!device) {
-      throw new Error('Device not found')
+      console.error(`Device "${deviceName}" not found in database`);
+      console.log('Expected one of:', allDevices.map(d => d.name).join(', '));
+      console.log('========================\n');
+      throw new Error('Device not found');
     }
 
-    // Emit device update via Socket.IO
-    await emitDeviceUpdate(deviceName, {
-      name: deviceName,
-      status: status.status,
-      autoMode: status.autoMode,
-      lastUpdated: new Date()
-    })
+    // Update the device
+    device.status = deviceState.status;
+    device.autoMode = deviceState.autoMode;
+    device.lastUpdated = deviceState.lastUpdated;
 
-    return device
+    const updatedDevice = await device.save();
+    console.log('Device updated successfully:', {
+      name: updatedDevice.name,
+      status: updatedDevice.status,
+      autoMode: updatedDevice.autoMode
+    });
+    console.log('========================\n');
+
+    // Emit the update via WebSocket
+    await emitDeviceUpdate(deviceName, updatedDevice);
+    
+    return updatedDevice;
   }
 } 

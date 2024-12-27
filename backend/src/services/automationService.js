@@ -170,13 +170,6 @@ export class AutomationService extends EventEmitter {
         Device.findOne({ name: 'lighting' }).lean(),
         Device.findOne({ name: 'fertilizer' }).lean()
       ]);
-
-      // console.log('Retrieved devices:', {
-      //   fan: fan?._id ? 'found' : 'not found',
-      //   pump: pump?._id ? 'found' : 'not found',
-      //   light: light?._id ? 'found' : 'not found',
-      //   fertilizer: fertilizer?._id ? 'found' : 'not found'
-      // });
       
       if (!settings?.preferences) {
         console.error('No settings found or invalid settings');
@@ -250,23 +243,25 @@ export class AutomationService extends EventEmitter {
       const dayOfWeek = currentDate.getDay() // 0-6 (Sunday-Saturday)
       const dayOfMonth = currentDate.getDate() // 1-31
 
+      const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
       const shouldStartFertilizer = (
         // Daily schedule
         (settings.fertilizerSchedule === 'daily' &&
           currentHour === settings.fertilizerTime &&
-          currentMinute < 10) ||
+          currentMinute === settings.fertilizerMinute) ||
 
         // Weekly schedule
         (settings.fertilizerSchedule === 'weekly' &&
-          dayOfWeek === settings.fertilizerDayOfWeek &&
+          weekDays[dayOfWeek] === settings.fertilizerDayOfWeek &&
           currentHour === settings.fertilizerTime &&
-          currentMinute < 10) ||
+          currentMinute === settings.fertilizerMinute) ||
 
         // Monthly schedule
         (settings.fertilizerSchedule === 'monthly' &&
           dayOfMonth === settings.fertilizerDayOfMonth &&
           currentHour === settings.fertilizerTime &&
-          currentMinute < 10)
+          currentMinute === settings.fertilizerMinute)
       )
 
       if (shouldStartFertilizer && !fertilizer.status) {
@@ -275,7 +270,7 @@ export class AutomationService extends EventEmitter {
 
         // Set timer to turn off after 10 minutes
         this.setFertilizerTimer(fertilizer._id)
-      } else if (!shouldStartFertilizer && fertilizer.status) {
+      } else if (!shouldStartFertilizer) {
         // Turn off fertilizer if it's outside the operation window
         await deviceService.toggleDevice('fertilizer', false)
       }
@@ -298,7 +293,7 @@ export class AutomationService extends EventEmitter {
         // Clean up timer reference
         this.fertilizerTimers.delete(deviceId);
       }
-    }, 10 * 60 * 1000); // 10 minutes
+    }, 2 * 60 * 1000); // 2 minutes
 
     this.fertilizerTimers.set(deviceId, timer);
   }

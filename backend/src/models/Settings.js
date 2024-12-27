@@ -12,6 +12,7 @@ const settingsSchema = new mongoose.Schema({
     lightingEndHour: { type: Number, default: 18 },
     fertilizerSchedule: { type: String, default: 'weekly' },
     fertilizerTime: { type: Number, default: 8 },
+    fertilizerMinute: { type: Number, default: 0 },
     fertilizerDayOfWeek: { type: String, default: 'Monday' },
     fertilizerDayOfMonth: { type: Number, default: 1 }
   },

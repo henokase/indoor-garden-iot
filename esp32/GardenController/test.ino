@@ -5,6 +5,8 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <WiFiClientSecure.h>
+#include <EEPROM.h>
+#include <time.h>
 
 // Pin Definitions
 #define DHT_PIN 4
@@ -15,8 +17,10 @@
 #define FERTILIZER_PIN 19
 
 // Constants
-#define DHT_TYPE DHT22
+#define DHT_TYPE DHT11
 #define MQTT_BUFFER_SIZE 512
+#define EEPROM_SIZE 512
+#define EEPROM_SETTINGS_ADDR 0
 
 // WiFi Configuration
 const char* WIFI_SSID = "Usurur";
@@ -97,7 +101,7 @@ struct SensorData {
 
 // Timing
 unsigned long lastSensorUpdate = 0;
-const unsigned long SENSOR_UPDATE_INTERVAL = 30000; // 30 seconds
+const unsigned long SENSOR_UPDATE_INTERVAL = 5000; // 5 seconds
 unsigned long lastMqttReconnectAttempt = 0;
 const unsigned long MQTT_RECONNECT_INTERVAL = 5000; // 5 seconds
 
@@ -116,6 +120,49 @@ const int OFFLINE_LIGHT_END_HOUR = 18;   // 6 PM
 const int OFFLINE_FERTILIZER_HOUR = 8;   // 8 AM
 const int OFFLINE_FERTILIZER_DURATION = 600000; // 10 minutes in milliseconds
 unsigned long lastFertilizerStart = 0;
+
+// Enhanced settings structure
+struct Settings {
+  // Temperature thresholds
+  float minTemp = 18.0;
+  float maxTemp = 30.0;
+  
+  // Moisture thresholds
+  int minMoisture = 30;
+  int maxMoisture = 80;
+  
+  // Lighting schedule
+  int lightStartHour = 6;
+  int lightEndHour = 18;
+  
+  // Fertilizer schedule
+  enum FertilizerSchedule { DAILY, WEEKLY, MONTHLY } fertilizerSchedule;
+  int fertilizerHour = 8;
+  int fertilizerDayOfWeek = 1;  // Monday
+  int fertilizerDayOfMonth = 1;
+  int fertilizerDuration = 600000; // 10 minutes
+};
+
+Settings settings;
+
+// Add after other global variables
+bool settingsLoaded = false;
+unsigned long pumpStartTime = 0;
+const unsigned long PUMP_DURATION = 5000; // 5 seconds
+
+// Add these functions for settings management
+void loadSettings() {
+  if (!settingsLoaded) {
+    EEPROM.begin(EEPROM_SIZE);
+    EEPROM.get(EEPROM_SETTINGS_ADDR, settings);
+    EEPROM.end();
+    settingsLoaded = true;
+    
+    Serial.println("Settings loaded from EEPROM:");
+    Serial.printf("Temperature range: %.1f-%.1f°C\n", settings.minTemp, settings.maxTemp);
+    Serial.printf("Moisture range: %d-%d%%\n", settings.minMoisture, settings.maxMoisture);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -445,68 +492,90 @@ void publishSensorData() {
 }
 
 void handleOfflineControl() {
-  Serial.println("\nRunning in offline mode with local control...");
+  Serial.println("\nRunning enhanced offline automation...");
+  
+  if (!settingsLoaded) {
+    loadSettings();
+  }
 
   // Temperature control (Fan)
-    if (sensorData.temperature > OFFLINE_TEMP_MAX && !fan.status) {
+  if (fan.autoMode) {
+    if (sensorData.temperature > settings.maxTemp && !fan.status) {
       fan.status = true;
-      digitalWrite(FAN_PIN, !fan.status);  // Turn on fan
-      Serial.println("Temperature high - Fan turned ON");
-    } else if (sensorData.temperature < OFFLINE_TEMP_MIN && fan.status) {
+      digitalWrite(FAN_PIN, !fan.status);
+      Serial.printf("Temperature high (%.1f°C) - Fan turned ON\n", sensorData.temperature);
+    } else if (sensorData.temperature < settings.minTemp && fan.status) {
       fan.status = false;
-      digitalWrite(FAN_PIN, !fan.status);  // Turn off fan
-      Serial.println("Temperature low - Fan turned OFF");
+      digitalWrite(FAN_PIN, !fan.status);
+      Serial.printf("Temperature low (%.1f°C) - Fan turned OFF\n", sensorData.temperature);
     }
-  
-  // Moisture control (Pump)
-    if (sensorData.moisture < OFFLINE_MOISTURE_MIN && !pump.status) {
+  }
+
+  // Moisture control (Pump) with duration control
+  if (pump.autoMode) {
+    if (sensorData.moisture < settings.minMoisture && !pump.status) {
       pump.status = true;
-      digitalWrite(PUMP_PIN, !pump.status);  // Turn on pump
-      Serial.println("Moisture low - Pump turned ON");
-      
-      // Auto turn off pump after 5 seconds
-      delay(5000);
+      pumpStartTime = millis();
+      digitalWrite(PUMP_PIN, !pump.status);
+      Serial.printf("Moisture low (%d%%) - Pump turned ON\n", sensorData.moisture);
+    } else if (pump.status && (millis() - pumpStartTime >= PUMP_DURATION)) {
       pump.status = false;
       digitalWrite(PUMP_PIN, !pump.status);
-      Serial.println("Pump cycle complete - turned OFF");
+      Serial.println("Pump duration complete - turned OFF");
     }
+  }
 
-  // Get current time once for both lighting and fertilizer control
+  // Enhanced time-based control
   struct tm timeinfo;
   if (getLocalTime(&timeinfo)) {
-    int currentHour = timeinfo.tm_hour;
-    int currentMinute = timeinfo.tm_min;
-
-    // Time based control (Lighting)
-    bool shouldLightBeOn = (currentHour >= OFFLINE_LIGHT_START_HOUR && 
-                           currentHour < OFFLINE_LIGHT_END_HOUR);
-    
-    if (shouldLightBeOn != light.status) {
-      light.status = shouldLightBeOn;
-      digitalWrite(LIGHT_PIN, !light.status);
-      Serial.printf("Light turned %s (Hour: %d)\n", 
-                   shouldLightBeOn ? "ON" : "OFF", 
-                   currentHour);
+    // Lighting control with schedule
+    if (light.autoMode) {
+      bool shouldLightBeOn = (timeinfo.tm_hour >= settings.lightStartHour && 
+                             timeinfo.tm_hour < settings.lightEndHour);
+      
+      if (shouldLightBeOn != light.status) {
+        light.status = shouldLightBeOn;
+        digitalWrite(LIGHT_PIN, !light.status);
+        Serial.printf("Light schedule: turned %s (Hour: %d)\n", 
+                     shouldLightBeOn ? "ON" : "OFF", 
+                     timeinfo.tm_hour);
+      }
     }
 
-    // Fertilizer control (Daily schedule at 8 AM for 10 minutes)
-    bool shouldStartFertilizer = (currentHour == OFFLINE_FERTILIZER_HOUR && 
-                                currentMinute < 10 && 
-                                !fertilizer.status);
-    
-    if (shouldStartFertilizer) {
-      fertilizer.status = true;
-      lastFertilizerStart = millis();
-      digitalWrite(FERTILIZER_PIN, !fertilizer.status);
-      Serial.println("Starting daily fertilizer cycle");
-    }
-    
-    // Check if it's time to stop fertilizer
-    if (fertilizer.status && 
-        (millis() - lastFertilizerStart >= OFFLINE_FERTILIZER_DURATION)) {
-      fertilizer.status = false;
-      digitalWrite(FERTILIZER_PIN, !fertilizer.status);
-      Serial.println("Fertilizer cycle complete");
+    // Enhanced fertilizer scheduling
+    if (fertilizer.autoMode) {
+      bool shouldStartFertilizer = false;
+      
+      switch (settings.fertilizerSchedule) {
+        case Settings::DAILY:
+          shouldStartFertilizer = (timeinfo.tm_hour == settings.fertilizerHour);
+          break;
+          
+        case Settings::WEEKLY:
+          shouldStartFertilizer = (timeinfo.tm_wday == settings.fertilizerDayOfWeek && 
+                                 timeinfo.tm_hour == settings.fertilizerHour);
+          break;
+          
+        case Settings::MONTHLY:
+          shouldStartFertilizer = (timeinfo.tm_mday == settings.fertilizerDayOfMonth && 
+                                 timeinfo.tm_hour == settings.fertilizerHour);
+          break;
+      }
+
+      if (shouldStartFertilizer && !fertilizer.status) {
+        fertilizer.status = true;
+        lastFertilizerStart = millis();
+        digitalWrite(FERTILIZER_PIN, !fertilizer.status);
+        Serial.println("Starting scheduled fertilizer cycle");
+      }
+      
+      // Check fertilizer duration
+      if (fertilizer.status && 
+          (millis() - lastFertilizerStart >= settings.fertilizerDuration)) {
+        fertilizer.status = false;
+        digitalWrite(FERTILIZER_PIN, !fertilizer.status);
+        Serial.println("Fertilizer cycle complete");
+      }
     }
   }
 }
