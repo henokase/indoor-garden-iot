@@ -258,9 +258,12 @@ export class AutomationService extends EventEmitter {
           currentMinute === settings.fertilizerMinute)
       )
 
-      if (shouldStartFertilizer && !fertilizer.status) {
+      if (shouldStartFertilizer) {
         // Turn on fertilizer
         await deviceService.toggleDevice('fertilizer', true)
+      } else {
+        // Turn off fertilizer
+        await deviceService.toggleDevice('fertilizer', false)
       }
     }
   }
