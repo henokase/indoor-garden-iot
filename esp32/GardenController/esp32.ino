@@ -400,7 +400,20 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   else if (strcmp(device, "irrigation") == 0) {
     pump.status = status;
     pump.autoMode = autoMode;
-    digitalWrite(PUMP_PIN, !pump.status);
+    
+    if (pump.status) {
+      // Start pump and record start time
+      pumpStartTime = millis();
+      digitalWrite(PUMP_PIN, !pump.status);
+      Serial.println("Pump started");
+    } else {
+      digitalWrite(PUMP_PIN, !pump.status);
+      Serial.println("Pump stopped");
+    }
+    
+    // Allow other tasks to run
+    yield();
+    
     Serial.print("Pump status updated to: ");
     Serial.println(pump.status ? "ON\n\n" : "OFF\n\n");
   }
@@ -491,16 +504,23 @@ void handleOfflineControl() {
       Serial.printf("Temperature low (%.1f°C) - Fan turned OFF\n", sensorData.temperature);
     }
 
-  // Moisture control (Pump) with duration control
+  // Moisture control (Pump) with duration control and yield
     if (sensorData.moisture < settings.minMoisture) {
       pump.status = true;
       pumpStartTime = millis();
       digitalWrite(PUMP_PIN, !pump.status);
       Serial.printf("Moisture low (%d%%) - Pump turned ON\n", sensorData.moisture);
-    } else if ((millis() - pumpStartTime >= PUMP_DURATION)) {
+      
+      // Allow other tasks to run
+      yield();
+    } 
+    else if (pump.status && (millis() - pumpStartTime >= PUMP_DURATION)) {
       pump.status = false;
       digitalWrite(PUMP_PIN, !pump.status);
       Serial.println("Pump duration complete - turned OFF");
+      
+      // Allow other tasks to run
+      yield();
     }
 
   // Enhanced time-based control

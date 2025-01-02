@@ -1,7 +1,6 @@
 import { deviceService } from './deviceService.js'
 import { sensorService } from './sensorService.js'
 import { settingsService } from './settingsService.js'
-import { mqttService } from '../config/mqtt.js'
 import EventEmitter from 'events'
 import { Device } from '../models/Device.js'
 
@@ -11,41 +10,6 @@ export class AutomationService extends EventEmitter {
     this.interval = null;
     this.isRunning = false;
     this.isProcessing = false; // Lock flag for race condition prevention
-    
-    // Subscribe to MQTT sensor updates
-    mqttService.client?.on('message', async (topic, message) => {
-      if (!this.isRunning || this.isProcessing) return;
-      
-      try {
-        if (topic === 'indoor-garden/sensors') {
-          const payload = JSON.parse(message.toString());
-          if (this.validateSensorData(payload)) {
-            await this.handleImmediateSensorReading({
-              temperature: payload.temperature,
-              moisture: payload.moisture,
-              timestamp: new Date(payload.timestamp)
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error processing MQTT sensor message:', error);
-      }
-    });
-
-    // Fallback: Listen to sensor updates from socket for redundancy
-    this.on('sensorUpdate', async (data) => {
-      if (this.isRunning && !this.isProcessing && this.validateSensorData(data)) {
-        await this.handleImmediateSensorReading(data);
-      }
-    });
-  }
-
-  validateSensorData(data) {
-    return data && 
-           typeof data.temperature === 'number' && 
-           typeof data.moisture === 'number' &&
-           !isNaN(data.temperature) && 
-           !isNaN(data.moisture);
   }
 
   async startAutomation() {
@@ -145,58 +109,6 @@ export class AutomationService extends EventEmitter {
     } catch (error) {
       console.error('Error processing readings:', error);
       throw error; // Propagate error for proper handling
-    }
-  }
-
-  async handleImmediateSensorReading(data) {
-    if (this.isProcessing) return;
-    this.isProcessing = true;
-    
-    try {
-      console.log('Processing sensor reading:', data);
-      const settings = await settingsService.getSettings();
-      
-      // Change the device lookup to use type instead of name
-      const [fan, pump, light, fertilizer] = await Promise.all([
-        Device.findOne({ name: 'fan' }).lean(),
-        Device.findOne({ name: 'irrigation' }).lean(),
-        Device.findOne({ name: 'lighting' }).lean(),
-        Device.findOne({ name: 'fertilizer' }).lean()
-      ]);
-      
-      if (!settings?.preferences) {
-        console.error('No settings found or invalid settings');
-        return;
-      }
-
-      // Temperature control
-      if (fan) {
-        if (fan.autoMode) {
-          // console.log(`Fan control - Temperature: ${data.temperature}°C, Thresholds: ${settings.preferences.minTemperatureThreshold}-${settings.preferences.maxTemperatureThreshold}°C`);
-          if (data.temperature > settings.preferences.maxTemperatureThreshold && !fan.status) {
-            await deviceService.toggleDevice('fan', true);
-          } else if (data.temperature < settings.preferences.minTemperatureThreshold && fan.status) {
-            await deviceService.toggleDevice('fan', false);
-          }
-        }
-      }
-      
-      // Moisture control
-      if (pump) {
-        if (pump.autoMode) {
-          // console.log(`Pump control - Moisture: ${data.moisture}%, Thresholds: ${settings.preferences.minMoistureThreshold}-${settings.preferences.maxMoistureThreshold}%`);
-          if (data.moisture < settings.preferences.minMoistureThreshold && !pump.status) {
-            await deviceService.toggleDevice('irrigation', true);
-          } else if (data.moisture > settings.preferences.maxMoistureThreshold && pump.status) {
-            await deviceService.toggleDevice('irrigation', false);
-          }
-        }
-      }
-
-    } catch (error) {
-      console.error('Error in handleImmediateSensorReading:', error.stack);
-    } finally {
-      this.isProcessing = false;
     }
   }
 

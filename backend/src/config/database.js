@@ -23,15 +23,15 @@ const connectDB = async () => {
     // mongoose.set('debug', true); // Enable debug logging
     
     const connection = await mongoose.connect(env.MONGODB_URI, options);
-    console.log(`MongoDB Connected: ${connection.connection.host}`);
+    // console.log(`MongoDB Connected: ${connection.connection.host}`);
 
     mongoose.connection.on('error', err => {
-      console.error('MongoDB connection error:', err);
+      // console.error('MongoDB connection error:', err);
       reconnect();
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.warn('MongoDB disconnected. Attempting to reconnect...');
+      // console.warn('MongoDB disconnected. Attempting to reconnect...');
       reconnect();
     });
 
@@ -39,7 +39,7 @@ const connectDB = async () => {
     process.on('SIGTERM', cleanup);
 
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    // console.error('MongoDB connection error:', error);
     reconnect();
   }
 };
@@ -54,20 +54,20 @@ const reconnect = (() => {
       const delay = baseDelay * Math.pow(2, retryCount);
       retryCount++;
 
-      console.log(`Retrying connection in ${delay/1000} seconds... (Attempt ${retryCount} of ${maxRetries})`);
+      // console.log(`Retrying connection in ${delay/1000} seconds... (Attempt ${retryCount} of ${maxRetries})`);
       
       setTimeout(async () => {
         try {
           await mongoose.connect(env.MONGODB_URI);
-          console.log('MongoDB reconnected successfully');
+          // console.log('MongoDB reconnected successfully');
           retryCount = 0;
         } catch (error) {
-          console.error('Reconnection attempt failed:', error);
+          // console.error('Reconnection attempt failed:', error);
           reconnect();
         }
       }, delay);
     } else {
-      console.error(`Failed to reconnect after ${maxRetries} attempts. Please check your database connection and restart the server.`);
+      // console.error(`Failed to reconnect after ${maxRetries} attempts. Please check your database connection and restart the server.`);
       cleanup();
     }
   };
@@ -76,10 +76,10 @@ const reconnect = (() => {
 const cleanup = async () => {
   try {
     await mongoose.connection.close();
-    console.log('MongoDB connection closed through app termination');
+    // console.log('MongoDB connection closed through app termination');
     process.exit(0);
   } catch (err) {
-    console.error('Error during cleanup:', err);
+    // console.error('Error during cleanup:', err);
     process.exit(1);
   }
 };

@@ -5,6 +5,7 @@ import { NotificationsCard } from "../components/settings/NotificationsCard";
 import { PasswordCard } from "../components/settings/PasswordCard";
 import { useFetchSettings, useUpdateSettings } from "../hooks/useSettings";
 import { toast } from "react-hot-toast";
+import { Lock } from "lucide-react";
 
 export default function Settings() {
     const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ export default function Settings() {
 
     const { data: settings, isLoading, isFetching, error: fetchingError } = useFetchSettings();
     const updateSettingsMutation = useUpdateSettings();
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     useEffect(() => {
         if (settings) {
@@ -130,27 +132,62 @@ export default function Settings() {
                     isLoading={isLoading || isFetching}
                 />
 
-                <motion.button
-                    type="submit"
-                    className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 
-                        transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    disabled={updateSettingsMutation.isPending || isFetching}
-                >
-                    {updateSettingsMutation.isPending ? (
-                        <div className="flex items-center justify-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>Saving...</span>
-                        </div>
-                    ) : (
-                        "Save Settings"
-                    )}
-                </motion.button>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <motion.button
+                        type="submit"
+                        className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 
+                            transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        disabled={updateSettingsMutation.isPending || isFetching}
+                    >
+                        {updateSettingsMutation.isPending ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>Saving...</span>
+                            </div>
+                        ) : (
+                            "Save Settings"
+                        )}
+                    </motion.button>
+
+                    <motion.button
+                        type="button"
+                        onClick={() => setShowPasswordModal(true)}
+                        className="flex items-center justify-center gap-2 bg-green-100 text-green-700 py-2 px-4 rounded-lg 
+                            hover:bg-green-200 transition-colors dark:bg-gray-700 dark:text-green-400 dark:hover:bg-gray-600"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        <Lock className="w-4 h-4" />
+                        Change Password
+                    </motion.button>
+                </div>
             </motion.form>
-            <PasswordCard 
-                isLoading={isLoading || isFetching}
-            />
+
+            {/* Password Modal */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="relative w-full max-w-md"
+                    >
+                        <button
+                            onClick={() => setShowPasswordModal(false)}
+                            className="absolute right-2 top-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 
+                                dark:hover:text-gray-200 z-10"
+                        >
+                            ×
+                        </button>
+                        <PasswordCard 
+                            isLoading={isLoading || isFetching}
+                            onClose={() => setShowPasswordModal(false)}
+                        />
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }

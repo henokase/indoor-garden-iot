@@ -116,12 +116,12 @@ export const deviceService = {
   },
 
   async updateDeviceStatus(deviceName, deviceState) {
-    console.log('\n=== Device Status Update ===');
-    console.log('Looking for device:', deviceName);
+    // console.log('\n=== Device Status Update ===');
+    // console.log('Looking for device:', deviceName);
     
     // Get all devices to debug
     const allDevices = await Device.find({}, 'name');
-    console.log('Available devices in DB:', allDevices.map(d => d.name));
+    // console.log('Available devices in DB:', allDevices.map(d => d.name));
 
     // Find the device
     const device = await Device.findOne({ name: deviceName });
@@ -139,7 +139,7 @@ export const deviceService = {
     device.lastUpdated = deviceState.lastUpdated;
 
     const updatedDevice = await device.save();
-    console.log('Device updated successfully:', {
+    console.log(updatedDevice.name,' updated successfully:', {
       name: updatedDevice.name,
       status: updatedDevice.status,
       autoMode: updatedDevice.autoMode

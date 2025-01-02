@@ -33,14 +33,14 @@ const startServer = async () => {
   try {
     // Connect to MongoDB
     await connectDB()
-    console.log('Connected to MongoDB')
+    // console.log('Connected to MongoDB')
 
     // Connect to MQTT broker
     try {
       await mqttService.connect()
-      console.log('Connected to MQTT broker')
+      // console.log('Connected to MQTT broker')
     } catch (mqttError) {
-      console.error('Failed to connect to MQTT broker:', mqttError)
+      // console.error('Failed to connect to MQTT broker:', mqttError)
       // Continue server startup even if MQTT fails
     }
 
@@ -64,15 +64,15 @@ const startServer = async () => {
 
     // Start server
     httpServer.listen(env.PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${env.PORT}`)
+      // console.log(`Server running on port ${env.PORT}`)
     })
 
     // Graceful shutdown handling
     const shutdown = async () => {
-      console.log('Shutting down gracefully...')
+      // console.log('Shutting down gracefully...')
       await mqttService.disconnect()
       httpServer.close(() => {
-        console.log('Server closed')
+        // console.log('Server closed')
         process.exit(0)
       })
     }
@@ -82,7 +82,7 @@ const startServer = async () => {
     process.on('SIGINT', shutdown)
 
   } catch (error) {
-    console.error('Failed to start server:', error)
+    // console.error('Failed to start server:', error)
     process.exit(1)
   }
 }

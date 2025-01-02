@@ -18,20 +18,20 @@ export const initializeSocket = (httpServer) => {
   })
 
   io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id)
+    // console.log('Client connected:', socket.id)
 
     socket.on('subscribe:sensor', (sensorId) => {
       socket.join(`sensors:${sensorId}`)
-      console.log(`Client ${socket.id} subscribed to sensor ${sensorId}`)
+      // console.log(`Client ${socket.id} subscribed to sensor ${sensorId}`)
     })
 
     socket.on('subscribe:device', (deviceId) => {
       socket.join(`devices:${deviceId}`)
-      console.log(`Client ${socket.id} subscribed to device ${deviceId}`)
+      // console.log(`Client ${socket.id} subscribed to device ${deviceId}`)
     })
 
     socket.on('disconnect', (reason) => {
-      console.log(`Client disconnected: ${socket.id}, reason: ${reason}`)
+      // console.log(`Client disconnected: ${socket.id}, reason: ${reason}`)
     })
   })
 
@@ -50,15 +50,15 @@ export const emitSensorUpdate = async (type, data) => {
   }
 
   const sockets = await io.in(room).fetchSockets()
-  console.log(`Found ${sockets.length} clients in room ${room}`)
+  // console.log(`Found ${sockets.length} clients in room ${room}`)
   
   if (sockets.length === 0) {
-    console.log(`No clients in room ${room}, skipping emission`)
+    // console.log(`No clients in room ${room}, skipping emission`)
     return
   }
 
   io.to(room).emit('sensor:update', eventData)
-  console.log(`Sensor update emitted to ${sockets.length} clients in ${room}`)
+  // console.log(`Sensor update emitted to ${sockets.length} clients in ${room}`)
 }
 
 export const emitDeviceUpdate = async (deviceName, data) => {
@@ -68,12 +68,12 @@ export const emitDeviceUpdate = async (deviceName, data) => {
   const sockets = await io.in(room).fetchSockets()
   
   if (sockets.length === 0) {
-    console.log(`No clients in room ${room}, skipping emission`)
+    // console.log(`No clients in room ${room}, skipping emission`)
     return
   }
 
   io.to(room).emit('device:update', data)
-  console.log(`Device update emitted to ${sockets.length} clients in ${room}`)
+  // console.log(`Device update emitted to ${sockets.length} clients in ${room}`)
 }
 
 export const emitSystemAlert = async (alert) => {
@@ -87,7 +87,7 @@ export const emitSystemAlert = async (alert) => {
   )
 
   await Promise.all(promises)
-  console.log(`System alert emitted to ${sockets.length} clients`)
+  // console.log(`System alert emitted to ${sockets.length} clients`)
 }
 
 export const getIO = () => {

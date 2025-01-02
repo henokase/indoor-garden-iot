@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useUpdatePassword } from "../../hooks/useSettings";
 import { toast } from "react-hot-toast";
 
-export function PasswordCard({ isLoading }) {
+export function PasswordCard({ isLoading, onClose }) {
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
         newPassword: "",
@@ -30,8 +30,11 @@ export function PasswordCard({ isLoading }) {
                 newPassword: "",
                 confirmPassword: "",
             });
+            toast.success("Password updated successfully");
+            onClose?.();
         } catch (error) {
             console.error("Password update error:", error);
+            toast.error(error.response?.data?.message || "Failed to update password");
         }
     };
 

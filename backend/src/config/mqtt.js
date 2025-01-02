@@ -88,7 +88,7 @@ class MQTTService {
       const payload = JSON.parse(message.toString())
 
       if (topic === 'indoor-garden/sensors') {
-        console.log('MQTT Message Received:', { topic, payload })
+        // console.log('MQTT Message Received:', { topic, payload })
         
         let timestamp;
         try {
@@ -103,7 +103,7 @@ class MQTTService {
           timestamp = new Date();
         }
 
-        console.log('Processing sensor reading with timestamp:', timestamp.toISOString())
+        // console.log('Processing sensor reading with timestamp:', timestamp.toISOString())
 
         const sensorPromises = [
           SensorReading.create({
@@ -121,16 +121,16 @@ class MQTTService {
         ]
 
         const [tempReading, moistureReading] = await Promise.all(sensorPromises)
-        console.log('Saved sensor readings:', {
-          temperature: {
-            value: tempReading.value,
-            timestamp: tempReading.timestamp
-          },
-          moisture: {
-            value: moistureReading.value,
-            timestamp: moistureReading.timestamp
-          }
-        })
+        // console.log('Saved sensor readings:', {
+        //   temperature: {
+        //     value: tempReading.value,
+        //     timestamp: tempReading.timestamp
+        //   },
+        //   moisture: {
+        //     value: moistureReading.value,
+        //     timestamp: moistureReading.timestamp
+        //   }
+        // })
 
         emitSensorUpdate('temperature', {
           type: 'temperature',
@@ -147,10 +147,10 @@ class MQTTService {
       if (topic === 'indoor-garden/devices') {
         try {
           const deviceName = payload.device;
-          console.log('\n=== Device Update Request ===');
-          console.log('Received device name:', deviceName);
+          // console.log('\n=== Device Update Request ===');
+          // console.log('Received device name:', deviceName);
           
-          console.log('Full payload:', payload);
+          // console.log('Full payload:', payload);
 
           const deviceState = {
             status: payload.status,
@@ -159,8 +159,8 @@ class MQTTService {
           };
           
           const updatedDevice = await deviceService.updateDeviceStatus(deviceName, deviceState);
-          console.log('Device update result:', updatedDevice ? 'Success' : 'Failed');
-          console.log('===========================\n');
+          // console.log(deviceName, ' result:', updatedDevice ? 'Success' : 'Failed');
+          // console.log('===========================\n');
         } catch (error) {
           console.error('Error updating device:', error);
         }
