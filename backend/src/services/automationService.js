@@ -10,7 +10,6 @@ export class AutomationService extends EventEmitter {
     super();
     this.interval = null;
     this.isRunning = false;
-    this.fertilizerTimers = new Map();
     this.isProcessing = false; // Lock flag for race condition prevention
     
     // Subscribe to MQTT sensor updates
@@ -79,12 +78,6 @@ export class AutomationService extends EventEmitter {
       this.interval = null;
     }
     this.isRunning = false;
-    
-    // Clear all fertilizer timers
-    for (const timer of this.fertilizerTimers.values()) {
-      clearTimeout(timer);
-    }
-    this.fertilizerTimers.clear();
     
     // Wait for any ongoing processing to complete
     while (this.isProcessing) {
@@ -243,7 +236,8 @@ export class AutomationService extends EventEmitter {
       const dayOfWeek = currentDate.getDay() // 0-6 (Sunday-Saturday)
       const dayOfMonth = currentDate.getDate() // 1-31
 
-      const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const jsToWeekDay = (jsDay) => weekDays[(jsDay + 6) % 7]; // Convert JS day (0=Sunday) to our day format (0=Monday)
 
       const shouldStartFertilizer = (
         // Daily schedule
@@ -253,7 +247,7 @@ export class AutomationService extends EventEmitter {
 
         // Weekly schedule
         (settings.fertilizerSchedule === 'weekly' &&
-          weekDays[dayOfWeek] === settings.fertilizerDayOfWeek &&
+          jsToWeekDay(dayOfWeek) === settings.fertilizerDayOfWeek &&
           currentHour === settings.fertilizerTime &&
           currentMinute === settings.fertilizerMinute) ||
 
@@ -267,34 +261,7 @@ export class AutomationService extends EventEmitter {
       if (shouldStartFertilizer && !fertilizer.status) {
         // Turn on fertilizer
         await deviceService.toggleDevice('fertilizer', true)
-
-        // Set timer to turn off after 10 minutes
-        this.setFertilizerTimer(fertilizer._id)
-      } else if (!shouldStartFertilizer) {
-        // Turn off fertilizer if it's outside the operation window
-        await deviceService.toggleDevice('fertilizer', false)
       }
     }
-  }
-
-  async setFertilizerTimer(deviceId) {
-    // Clear existing timer if present
-    if (this.fertilizerTimers.has(deviceId)) {
-      clearTimeout(this.fertilizerTimers.get(deviceId));
-      this.fertilizerTimers.delete(deviceId);
-    }
-
-    const timer = setTimeout(async () => {
-      try {
-        await deviceService.toggleDevice('fertilizer', false);
-      } catch (error) {
-        console.error('Error stopping fertilizer:', error);
-      } finally {
-        // Clean up timer reference
-        this.fertilizerTimers.delete(deviceId);
-      }
-    }, 2 * 60 * 1000); // 2 minutes
-
-    this.fertilizerTimers.set(deviceId, timer);
   }
 }

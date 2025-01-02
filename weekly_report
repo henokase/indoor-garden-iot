@@ -1,0 +1,46 @@
+Weekly Report
+
+
+Week 1
+
+On the first week, I attended an orientation session that provided an introduction to the Integrated Engineering Team Project (IETP). The orientation covered the project’s objectives, expectations, and the collaborative approach we’ll be using. I also had the opportunity to visit the workshop, where we’ll be working throughout the project, and I met my teammates for the first time. This initial meeting helped establish connections within the team.
+
+Week 2
+
+In the second week, our team began brainstorming project ideas. The initial idea was a basic gardening system that used sensors to water plants. After discussing it with our advisor, he encouraged us to include additional features to make the project more innovative and impactful. Following his feedback, we decided to focus on indoor gardening and incorporate IoT capabilities. This led to the development of the Indoor Smart Gardening Station, with features such as environmental monitoring, smart lighting, and automated irrigation.
+
+Week 3
+
+This week, I focused on defining the structure and design of the dashboard for the Indoor Smart Gardening Station. I outlined how the dashboard would display real-time data such as temperature, humidity, and soil moisture levels, ensuring it would be user-friendly and visually clear. I also worked on planning the data flow between the IoT devices and the dashboard to ensure all components could communicate smoothly. 
+
+Week 4
+
+In the fourth week, I contributed to drafting the software section of the project proposal. I wrote about the main features of the system, including how the software will help monitor plant conditions and control the environment. I also explained how automation will work to simplify gardening tasks for users. 
+
+Week 5
+
+In the fifth week, I focused on helping with the project proposal. My main tasks included integrating contributions from team members into a cohesive document and ensuring the software section clearly outlined the objectives, methodologies, and tools to be used. I also collaborated with the team leader to create the project’s Gantt chart, planning out the timeline for software development tasks.
+
+Week 6
+
+This week, I decided not to use Blynk for the project and instead focused on creating a website from scratch. I started by designing the ui for the website, aiming for a simple and user-friendly layout. To make the development process smoother, I researched frameworks and components that could simplify building the website. After settling on a structure, I began creating the site's basic layout. I also thought about how the ESP8266 would integrate with the website and how data would flow between the two systems. It was a week of planning and starting the foundation for the website. 
+
+Week 7
+
+In the seventh week, I worked on building the backend server and setting up the database for the project. I focused on ensuring smooth data flow between the frontend and backend, so the website could handle real-time updates from the microcontroller in the future. I also spent some time improving the UI of the website.
+
+Week 8
+
+This week, I finalized the basics of both the backend and frontend of the website. Since we still didn’t have the hardware components, I created a simple server to simulate the ESP8266’s functionality. This allowed me to test the backend and ensure the data flow between the simulated microcontroller and the website worked as expected. While testing the system, I encountered some bugs in how the data was being processed and displayed. I spent time identifying the causes of these issues and worked on fixing them. In the end, I resolved most of the bugs and ensured that the system’s core functionality was stable, even without the actual hardware.
+
+Week 9
+
+
+This week, I finished working on both the backend and frontend of the system. I also helped my electrical and electromechanical teammates with coding the ESP32. Additionally, I worked on adding extra features to the website and checked if the ESP32 was compatible with the backend server.
+
+
+Week 10
+
+
+This week, since we got the hardware components we started testing the code with the actual hardware. During testing, we encountered several errors and bugs, including issues with sensor readings and communication between the ESP32 and the backend server. I worked with the team to debug these issues and successfully resolved them. Additionally, I assisted with the physical installation of hardware components, such as setting up the sensors, fans, and other devices. Also, I helped to test the ESP32's functionality to confirm it was responding correctly to inputs and outputs from the sensors and actuators. These tests ensured the system worked as expected in real-world conditions. 
+

@@ -39,7 +39,6 @@ class MQTTService {
       this.client.on('error', this.handleError.bind(this))
       this.client.on('close', this.handleClose.bind(this))
 
-      // Start heartbeat check
       this.startHeartbeat()
     } catch (error) {
       console.error('Failed to connect to MQTT broker:', error)
@@ -48,18 +47,17 @@ class MQTTService {
   }
 
   startHeartbeat() {
-    // Clear any existing interval
+    
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval)
     }
 
-    // Check connection every 30 seconds
     this.heartbeatInterval = setInterval(async () => {
       try {
         if (this.connected) {
           const latency = await this.getLatency()
           if (latency === null) {
-            // Connection may be stale, attempt reconnect
+            
             this.handleClose()
             this.client.reconnect()
           }
@@ -76,10 +74,9 @@ class MQTTService {
     this.connected = true
     this.lastPingTime = Date.now()
 
-    // Subscribe to topics
     const topics = [
       'indoor-garden/sensors',
-      'indoor-garden/devices'   // Single topic for all device updates
+      'indoor-garden/devices'  
     ]
 
     topics.forEach(topic => this.client.subscribe(topic))
@@ -93,12 +90,10 @@ class MQTTService {
       if (topic === 'indoor-garden/sensors') {
         console.log('MQTT Message Received:', { topic, payload })
         
-        // Parse the timestamp from ISO string or use current time as fallback
         let timestamp;
         try {
           timestamp = payload.timestamp ? new Date(payload.timestamp) : new Date();
           
-          // Validate the timestamp
           if (isNaN(timestamp.getTime())) {
             console.warn('Invalid timestamp received:', payload.timestamp);
             timestamp = new Date();
@@ -110,7 +105,6 @@ class MQTTService {
 
         console.log('Processing sensor reading with timestamp:', timestamp.toISOString())
 
-        // Save sensor readings to database
         const sensorPromises = [
           SensorReading.create({
             type: 'temperature',
@@ -138,7 +132,6 @@ class MQTTService {
           }
         })
 
-        // Emit updates to connected clients
         emitSensorUpdate('temperature', {
           type: 'temperature',
           value: payload.temperature || null,
@@ -157,7 +150,6 @@ class MQTTService {
           console.log('\n=== Device Update Request ===');
           console.log('Received device name:', deviceName);
           
-          // Add debug log for payload
           console.log('Full payload:', payload);
 
           const deviceState = {
@@ -188,7 +180,6 @@ class MQTTService {
     this.connected = false
     this.lastPingTime = null
 
-    // Attempt to reconnect after 5 seconds
     setTimeout(() => {
       if (!this.connected) {
         console.log('Attempting to reconnect to MQTT...')
@@ -208,7 +199,7 @@ class MQTTService {
   isConnected() {
     return this.connected &&
       this.lastPingTime &&
-      (Date.now() - this.lastPingTime) < 60000 // Consider stale after 1 minute
+      (Date.now() - this.lastPingTime) < 60000
   }
 
   async getLatency() {
@@ -223,13 +214,11 @@ class MQTTService {
 
   async disconnect() {
     if (this.client) {
-      // Clear heartbeat interval
       if (this.heartbeatInterval) {
         clearInterval(this.heartbeatInterval)
         this.heartbeatInterval = null
       }
 
-      // End MQTT connection
       return new Promise((resolve) => {
         this.client.end(false, () => {
           this.connected = false
@@ -241,6 +230,5 @@ class MQTTService {
   }
 }
 
-// Create and export singleton instance
 const mqttService = new MQTTService()
 export { mqttService }
