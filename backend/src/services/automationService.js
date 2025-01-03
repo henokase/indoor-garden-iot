@@ -140,34 +140,40 @@ export class AutomationService extends EventEmitter {
       await deviceService.toggleDevice('lighting', shouldLightBeOn)
     }
 
-    // Fertilizer control logic
+    // Fertilizer control logic with proper timezone handling
     if (fertilizer && fertilizer.autoMode) {
-      const currentDate = new Date()
-      const currentHour = currentDate.getHours()
-      const currentMinute = currentDate.getMinutes()
-      const dayOfWeek = currentDate.getDay() // 0-6 (Sunday-Saturday)
-      const dayOfMonth = currentDate.getDate() // 1-31
+      // Get current time in UTC
+      const now = new Date()
+      const utcHour = now.getUTCHours()
+      const utcMinute = now.getUTCMinutes()
+      const utcDayOfWeek = now.getUTCDay() // 0-6 (Sunday-Saturday)
+      const utcDayOfMonth = now.getUTCDate() // 1-31
 
-      const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const jsToWeekDay = (jsDay) => weekDays[(jsDay + 6) % 7]; // Convert JS day (0=Sunday) to our day format (0=Monday)
+      // Convert scheduled time from local time (UTC+3) to UTC
+      // Since the scheduled time is in local time (UTC+3), subtract 3 hours for UTC
+      const scheduledHourUTC = (settings.fertilizerTime - 3 + 24) % 24
+      const scheduledMinuteUTC = settings.fertilizerMinute
+
+      const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+      const jsToWeekDay = (jsDay) => weekDays[(jsDay + 6) % 7] // Convert JS day (0=Sunday) to our day format (0=Monday)
 
       const shouldStartFertilizer = (
         // Daily schedule
         (settings.fertilizerSchedule === 'daily' &&
-          currentHour === settings.fertilizerTime &&
-          currentMinute === settings.fertilizerMinute) ||
+          utcHour === scheduledHourUTC &&
+          utcMinute === scheduledMinuteUTC) ||
 
         // Weekly schedule
         (settings.fertilizerSchedule === 'weekly' &&
-          jsToWeekDay(dayOfWeek) === settings.fertilizerDayOfWeek &&
-          currentHour === settings.fertilizerTime &&
-          currentMinute === settings.fertilizerMinute) ||
+          jsToWeekDay(utcDayOfWeek) === settings.fertilizerDayOfWeek &&
+          utcHour === scheduledHourUTC &&
+          utcMinute === scheduledMinuteUTC) ||
 
         // Monthly schedule
         (settings.fertilizerSchedule === 'monthly' &&
-          dayOfMonth === settings.fertilizerDayOfMonth &&
-          currentHour === settings.fertilizerTime &&
-          currentMinute === settings.fertilizerMinute)
+          utcDayOfMonth === settings.fertilizerDayOfMonth &&
+          utcHour === scheduledHourUTC &&
+          utcMinute === scheduledMinuteUTC)
       )
 
       if (shouldStartFertilizer) {
@@ -177,6 +183,28 @@ export class AutomationService extends EventEmitter {
         // Turn off fertilizer
         await deviceService.toggleDevice('fertilizer', false)
       }
+
+      // Debug logging
+      console.log('Fertilizer Schedule Check:', {
+        currentUTC: {
+          hour: utcHour,
+          minute: utcMinute,
+          dayOfWeek: jsToWeekDay(utcDayOfWeek),
+          dayOfMonth: utcDayOfMonth
+        },
+        scheduledUTC: {
+          hour: scheduledHourUTC,
+          minute: scheduledMinuteUTC,
+          dayOfWeek: settings.fertilizerDayOfWeek,
+          dayOfMonth: settings.fertilizerDayOfMonth
+        },
+        schedule: settings.fertilizerSchedule,
+        shouldStart: shouldStartFertilizer,
+        originalScheduledTime: {
+          hour: settings.fertilizerTime,
+          minute: settings.fertilizerMinute
+        }
+      });
     }
   }
 }
